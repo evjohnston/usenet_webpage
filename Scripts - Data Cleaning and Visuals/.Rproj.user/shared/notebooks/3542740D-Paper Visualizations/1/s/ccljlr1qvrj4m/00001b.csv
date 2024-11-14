@@ -1,0 +1,4 @@
+"0",""
+"0","output_file_path_transposed <- file.path(output_directory, ""images and tables"", ""table_topic_matches_transposed.html"")"
+"0","tab_df(transposed_best_matches,"
+"0","  file = output_file_path_transposed)"

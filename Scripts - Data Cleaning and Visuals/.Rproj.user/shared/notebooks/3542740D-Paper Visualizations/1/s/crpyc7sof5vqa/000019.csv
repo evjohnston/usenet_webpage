@@ -1,0 +1,4 @@
+"0",""
+"0","# Save the plot to a file"
+"0","output_file_path <- file.path(output_directory, ""images and tables/plot_top_15_most_active_users_by_newsgroup.png"")"
+"0","ggsave(output_file_path, plot = bar_plot, width = 10, height = 6, dpi = 300)"

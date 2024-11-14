@@ -1,0 +1,32 @@
+"0","# Calculate rolling average of sentiment over time"
+"0","all_comments['RollingSentiment'] = all_comments['SentimentScore'].rolling(window=30, min_periods=1).mean()"
+"2","<string>:1: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+"
+"0","plt.figure(figsize=(12, 6))"
+"2","<string>:1: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`). Consider using `matplotlib.pyplot.close()`.
+"
+"0","plt.plot(all_comments['Date'], all_comments['RollingSentiment'], color='purple')"
+"1","<Figure size 1200x600 with 0 Axes>
+"
+"0","plt.title('Sentiment Trend Analysis with Rolling Average')"
+"1","[<matplotlib.lines.Line2D object at 0x33c481df0>]
+"
+"0","plt.xlabel('Date')"
+"1","Text(0.5, 1.0, 'Sentiment Trend Analysis with Rolling Average')
+"
+"1","Text(0.5, 0, 'Date')
+"
+"0","plt.ylabel('Rolling Average Sentiment Score (30-day window)')"
+"0","plt.xticks(rotation=45)"
+"1","Text(0, 0.5, 'Rolling Average Sentiment Score (30-day window)')
+"
+"1","(array([4018., 4383., 4748., 5113., 5479., 5844., 6209.]), [Text(4018.0, 0, '1981'), Text(4383.0, 0, '1982'), Text(4748.0, 0, '1983'), Text(5113.0, 0, '1984'), Text(5479.0, 0, '1985'), Text(5844.0, 0, '1986'), Text(6209.0, 0, '1987')])
+"
+"0","plt.tight_layout()"
+"0","plt.savefig(os.path.join(output_directory, ""images and tables/sentiment_trend_rolling_average.png""))"
+"0","plt.show()"
+"0",""

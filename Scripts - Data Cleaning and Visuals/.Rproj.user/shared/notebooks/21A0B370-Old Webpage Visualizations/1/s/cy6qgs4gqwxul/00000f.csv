@@ -1,0 +1,3 @@
+"0","quit"
+"0","rm(list = ls()) "
+"0","knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_AIDs_discourses_webpage')"

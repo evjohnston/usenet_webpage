@@ -1,0 +1,4 @@
+"0",""
+"0","# Save the gt table to an HTML file"
+"0","output_file_path <- file.path(output_directory, ""images and tables"", ""table_top_terms_and_betas_(influential_authors).html"")"
+"0","gtsave(gt_table, output_file_path)"

@@ -1,0 +1,512 @@
+)
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+# Reorder columns to have term, beta, term, beta, etc.
+reshaped_df <- reshaped_df %>%
+select(term_id, order(c(seq(2, ncol(reshaped_df), by = 4), seq(3, ncol(reshaped_df), by = 4),
+seq(4, ncol(reshaped_df), by = 4), seq(5, ncol(reshaped_df), by = 4))))
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id, order(c(seq(2, ncol(reshaped_df)/2 + 1, by = 1), seq(ncol(reshaped_df)/2 + 2, ncol(reshaped_df), by = 1))))
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id, order(c(seq(2, ncol(reshaped_df)/2 + 1, by = 1), seq(ncol(reshaped_df)/2 + 2, ncol(reshaped_df), by = 1))))
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id, order(c(seq(2, ncol(reshaped_df)/2 + 1, by = 1), seq(ncol(reshaped_df)/2 + 2, ncol(reshaped_df), by = 1))))
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Correctly construct the output file path
+output_file_path <- file.path(output_directory, "images and tables", "Top Terms and Betas for Each Topic.html")
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2,
+file = output_file_path
+)
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Correctly construct the output file path
+output_file_path <- file.path(output_directory, "images and tables", "Top Terms and Betas for Each Topic.html")
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2,
+file = output_file_path
+)
+# Install gt if you haven't already
+install.packages("gt")
+# Load required libraries
+library(dplyr)
+library(gt)
+# Create the gt table
+gt_table <- reshaped_df %>%
+gt() %>%
+tab_spanner(
+label = "Topic 1",
+columns = c("Topic_1_term", "Topic_1_beta")
+) %>%
+tab_spanner(
+label = "Topic 2",
+columns = c("Topic_2_term", "Topic_2_beta")
+) %>%
+tab_spanner(
+label = "Topic 3",
+columns = c("Topic_3_term", "Topic_3_beta")
+) %>%
+tab_spanner(
+label = "Topic 4",
+columns = c("Topic_4_term", "Topic_4_beta")
+) %>%
+tab_spanner(
+label = "Topic 5",
+columns = c("Topic_5_term", "Topic_5_beta")
+) %>%
+cols_label(
+term_id = "Term No.",
+Topic_1_term = "term", Topic_1_beta = "beta",
+Topic_2_term = "term", Topic_2_beta = "beta",
+Topic_3_term = "term", Topic_3_beta = "beta",
+Topic_4_term = "term", Topic_4_beta = "beta",
+Topic_5_term = "term", Topic_5_beta = "beta"
+)
+# Display the table
+gt_table
+install.packages("gt")
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Correctly construct the output file path
+output_file_path <- file.path(output_directory, "images and tables", "Top Terms and Betas for Each Topic.html")
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2,
+file = output_file_path
+)
+# Install gt if you haven't already
+install.packages("gt")
+# Load required libraries
+library(dplyr)
+library(gt)
+# Create the gt table
+gt_table <- reshaped_df %>%
+gt() %>%
+tab_spanner(
+label = "Topic 1",
+columns = c("Topic_1_term", "Topic_1_beta")
+) %>%
+tab_spanner(
+label = "Topic 2",
+columns = c("Topic_2_term", "Topic_2_beta")
+) %>%
+tab_spanner(
+label = "Topic 3",
+columns = c("Topic_3_term", "Topic_3_beta")
+) %>%
+tab_spanner(
+label = "Topic 4",
+columns = c("Topic_4_term", "Topic_4_beta")
+) %>%
+tab_spanner(
+label = "Topic 5",
+columns = c("Topic_5_term", "Topic_5_beta")
+) %>%
+cols_label(
+term_id = "Term No.",
+Topic_1_term = "term", Topic_1_beta = "beta",
+Topic_2_term = "term", Topic_2_beta = "beta",
+Topic_3_term = "term", Topic_3_beta = "beta",
+Topic_4_term = "term", Topic_4_beta = "beta",
+Topic_5_term = "term", Topic_5_beta = "beta"
+)
+# Display the table
+tab_df(gt_table)
+install.packages("gt")
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Correctly construct the output file path
+output_file_path <- file.path(output_directory, "images and tables", "Top Terms and Betas for Each Topic.html")
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2,
+file = output_file_path
+)
+# Install gt if you haven't already
+install.packages("gt")
+# Load required libraries
+library(dplyr)
+library(gt)
+# Create the gt table
+gt_table <- reshaped_df %>%
+gt() %>%
+tab_spanner(
+label = "Topic 1",
+columns = c("Topic_1_term", "Topic_1_beta")
+) %>%
+tab_spanner(
+label = "Topic 2",
+columns = c("Topic_2_term", "Topic_2_beta")
+) %>%
+tab_spanner(
+label = "Topic 3",
+columns = c("Topic_3_term", "Topic_3_beta")
+) %>%
+tab_spanner(
+label = "Topic 4",
+columns = c("Topic_4_term", "Topic_4_beta")
+) %>%
+tab_spanner(
+label = "Topic 5",
+columns = c("Topic_5_term", "Topic_5_beta")
+) %>%
+cols_label(
+term_id = "Term No.",
+Topic_1_term = "term", Topic_1_beta = "beta",
+Topic_2_term = "term", Topic_2_beta = "beta",
+Topic_3_term = "term", Topic_3_beta = "beta",
+Topic_4_term = "term", Topic_4_beta = "beta",
+Topic_5_term = "term", Topic_5_beta = "beta"
+)
+install.packages("gt")
+# Load required libraries
+library(tidyr)
+library(dplyr)
+library(sjPlot)
+# Assuming top_terms_df is your data frame from the LDA analysis
+# Reshape the data frame to have each topic's terms and betas side by side
+reshaped_df <- top_terms_df %>%
+group_by(topic) %>%
+mutate(term_id = row_number()) %>%
+ungroup() %>%
+pivot_wider(
+names_from = topic,
+values_from = c(term, beta),
+names_glue = "Topic_{topic}_{.value}"
+)
+reshaped_df <- reshaped_df %>%
+select(term_id,
+starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
+starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
+starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
+starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
+starts_with("Topic_5_term"), starts_with("Topic_5_beta"))
+# Correctly construct the output file path
+output_file_path <- file.path(output_directory, "images and tables", "Top Terms and Betas for Each Topic.html")
+# Create a styled table using sjPlot
+tab_df(
+reshaped_df,
+title = "Top Terms and Betas for Each Topic",
+show.rownames = FALSE,
+digits = 2,
+file = output_file_path
+)
+# Install gt if you haven't already
+install.packages("gt")
+# Load required libraries
+library(dplyr)
+library(gt)
+# Create the gt table
+gt_table <- reshaped_df %>%
+gt() %>%
+tab_spanner(
+label = "Topic 1",
+columns = c("Topic_1_term", "Topic_1_beta")
+) %>%
+tab_spanner(
+label = "Topic 2",
+columns = c("Topic_2_term", "Topic_2_beta")
+) %>%
+tab_spanner(
+label = "Topic 3",
+columns = c("Topic_3_term", "Topic_3_beta")
+) %>%
+tab_spanner(
+label = "Topic 4",
+columns = c("Topic_4_term", "Topic_4_beta")
+) %>%
+tab_spanner(
+label = "Topic 5",
+columns = c("Topic_5_term", "Topic_5_beta")
+) %>%
+cols_label(
+term_id = "Term No.",
+Topic_1_term = "term", Topic_1_beta = "beta",
+Topic_2_term = "term", Topic_2_beta = "beta",
+Topic_3_term = "term", Topic_3_beta = "beta",
+Topic_4_term = "term", Topic_4_beta = "beta",
+Topic_5_term = "term", Topic_5_beta = "beta"
+)

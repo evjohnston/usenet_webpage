@@ -1,0 +1,8 @@
+"0","all_comments <- all_comments %>%"
+"0","  filter(Date < as.Date(""1987-01-01"")) %>% filter(Date > as.Date(""1982-01-01""))"
+"0",""
+"0","all_threads <- all_threads %>%"
+"0","  filter(Date < as.Date(""1987-01-01"")) %>% filter(Date > as.Date(""1982-01-01""))"
+"0",""
+"0","write.csv(all_threads, file.path(threads_directory, ""combined_threads_cleaned_82TO86.csv""), row.names = FALSE)"
+"0","write.csv(all_comments, file.path(comments_directory, ""combined_comments_cleaned_82TO86.csv""), row.names = FALSE)"

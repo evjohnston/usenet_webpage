@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5. Data Analysis</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the external CSS file -->
+</head>
+<body>
+    <!-- Load header dynamically -->
+    <div id="header-container"></div>
+
+    <!-- Load menu dynamically -->
+    <div id="menu-container"></div>
+
+    <div class="button-group">
+        <a href="page5.html"><button>Back</button></a>
+        <a href="page7.html"><button>Next</button></a>
+    </div>
+
+    <div class="container">
+        <h1>5. Data Analysis</h1>
+        
+        <!-- Introduction Section -->
+        <section>
+            <h2>5.1 Overview</h2>
+            <p>This data analysis provides a comprehensive examination of user interactions within Usenet newsgroups from various perspectives, including comment distribution, user engagement, sentiment analysis, and social network structures. By exploring these dimensions, we aim to uncover patterns of activity and sentiment that define the early Usenet community. Each visualization and analysis presented below offers unique insights into the nature of discussions and user behaviors, enhancing our understanding of the digital communication landscape during this period.</p>
+        </section>
+
+        <!-- Initial Visualizations -->
+        <button class="collapsible">5.2 Initial Visualizations</button>
+        <div class="content">
+            <h2>Distribution of Comments per Newsgroup</h2>
+            <img src="images and tables/distribution_of_comments_per_newsgroup.png" alt="Distribution of Comments per Newsgroup">
+            <p>The bar chart demonstrates the volume of comments across various newsgroups, highlighting that 'net.politics' and 'net.singles' are the most active, with over 12,000 comments each. In contrast, 'net.motss' and 'net.med' have fewer comments, indicating either a smaller user base or less frequent posting. This distribution reflects the varied focus and appeal of each newsgroup, where some topics naturally attract more debate and participation than others.</p>
+
+            <h2>Average Number of Comments per Thread by Newsgroup</h2>
+            <img src="images and tables/average_comments_per_thread_by_newsgroup.png" alt="Average Number of Comments per Thread by Newsgroup">
+            <p>This bar chart shows that some newsgroups, such as 'net.politics' and 'net.singles,' have higher engagement rates, with more comments per thread on average compared to others like 'net.news' and 'net.motss.' The variation in comments suggests differing levels of community engagement or topic interest. 'net.politics,' likely driven by the inherently debatable nature of its subject matter, encourages more extensive discussion per thread, while 'net.news' may serve more as an information dissemination group with fewer interactive dialogues.</p>
+
+            <h2>Growth of Newsgroups Over Time</h2>
+            <img src="images and tables/growth_of_newsgroups_over_time.png" alt="Growth of Newsgroups Over Time">
+            <p>The line chart depicts the cumulative number of newsgroups over time, showing a steady increase from 1982 to 1986. This growth signifies a broadening scope of interests and topics on Usenet, likely corresponding with the expanding user base and the platform’s increasing accessibility. The chart illustrates how Usenet evolved to accommodate a more diverse set of discussions, indicating its growing role as a multifaceted communication medium.</p>
+
+            <h2>Number of Threads Across All Newsgroups Over Time</h2>
+            <img src="images and tables/number_of_threads_over_time.png" alt="Number of Threads Across All Newsgroups Over Time">
+            <p>This plot shows fluctuations in the number of threads initiated over time, with noticeable peaks in the mid-1980s. These peaks could correlate with major global events or cultural phenomena that sparked widespread discussion. The sharp decline in threads towards the end of the period may indicate either a shift in user engagement or platform changes, such as the impact of 'The Great Renaming' or the emergence of alternative online communication platforms.</p>
+
+            <h2>Daily Activity Heatmap Across All Newsgroups</h2>
+            <img src="images and tables/combined_daily_activity_heatmap.png" alt="Daily Activity Heatmap Across All Newsgroups">
+            <p>The heatmap provides a visual representation of posting activity across different times of the week. There is a noticeable peak in activity during weekday mornings, particularly around 9-11 AM, suggesting that users are more active during traditional working hours. This could reflect the professional background of many early Usenet users, who might be accessing the platform from workplaces. Conversely, weekends show a marked decline in activity, reinforcing the idea of Usenet as part of work-related routines rather than leisure.</p>
+
+            <h2>Author Engagement: Comments Made vs. Threads Initiated</h2>
+            <img src="images and tables/author_engagement_scatterplot.png" alt="Author Engagement: Comments Made vs. Threads Initiated">
+            <p>This scatter plot illustrates a clear positive correlation between the number of threads an author initiates and the total number of comments they make across Usenet newsgroups. Authors who start more threads tend to engage more actively, contributing more frequently to ongoing discussions. The trend suggests that more proactive users—those who initiate conversations—are also likely to participate more extensively, either by continuing the dialogue they begin or by engaging across other threads.</p>
+
+            <h2>Top 25 Most Active Users by Newsgroup</h2>
+            <img src="images and tables/top_25_most_active_users_by_newsgroup.png" alt="Top 25 Most Active Users by Newsgroup">
+            <p>The horizontal bar chart identifies the top 25 most active users across different newsgroups, showing the diversity of engagement across topics. The varied lengths of the bars indicate that while some users are highly specialized, focusing their activity on one or two newsgroups, others contribute across multiple groups. This data highlights influential users and suggests the presence of both niche participants and broadly engaged users in the early Usenet ecosystem.</p>
+        </div>
+
+        <!-- Word Cloud Analysis -->
+        <button class="collapsible">5.3 Word Cloud Analysis</button>
+        <div class="content">
+            <h2>Most Common Words in netmed</h2>
+            <img src="images and tables/word_cloud_netmed.png" alt="Most Common Words in netmed">
+            
+            <h2>Most Common Words in netmotss</h2>
+            <img src="images and tables/word_cloud_netmotss.png" alt="Most Common Words in netmotss">
+            
+            <h2>Most Common Words in netnews</h2>
+            <img src="images and tables/word_cloud_netnews.png" alt="Most Common Words in netnews">
+            
+            <h2>Most Common Words in netpolitics</h2>
+            <img src="images and tables/word_cloud_netpolitics.png" alt="Most Common Words in netpolitics">
+            
+            <h2>Most Common Words in netreligion</h2>
+            <img src="images and tables/word_cloud_netreligion.png" alt="Most Common Words in netreligion">
+            
+            <h2>Most Common Words in netsingles</h2>
+            <img src="images and tables/word_cloud_netsingles.png" alt="Most Common Words in netsingles">
+            
+            <h2>Most Common Words in All Usenet Comments</h2>
+            <img src="images and tables/word_cloud_all_comments.png" alt="Most Common Words in All Usenet Comments">
+        </div>
+
+        <!-- Sentiment Analysis -->
+        <button class="collapsible">5.4 Sentiment Analysis</button>
+        <div class="content">
+            <h2>Sentiment Distribution by Newsgroup</h2>
+            <img src="images and tables/sentiment_distribution_by_newsgroup.png" alt="Sentiment Distribution by Newsgroup">
+            <p>This boxplot illustrates the distribution of sentiment scores across various newsgroups. The central box for each newsgroup indicates the interquartile range (IQR) of sentiment scores, with the median displayed as a line within the box. The whiskers extend to 1.5 times the IQR, indicating a moderate range of typical sentiment scores. Outliers beyond this range are shown as individual points, highlighting instances of particularly strong sentiment. Most newsgroups exhibit a similar distribution pattern, suggesting a balanced mix of positive and negative sentiments across discussions. The concentration of values around the median underscores a tendency toward neutral sentiment within these communities.</p>
+
+            <h2>Average Sentiment Over Time by Newsgroup</h2>
+            <img src="images and tables/sentiment_over_time_by_newsgroup.png" alt="Average Sentiment Over Time by Newsgroup">
+            <p>This line plot tracks the average sentiment scores over time for each newsgroup. Each line represents a different newsgroup, revealing variations in sentiment trends and shifts over time. Notably, there are several spikes and drops in sentiment for certain groups, such as netsingles and netpolitics, indicating periods of heightened emotional engagement or controversial topics. The general variability across newsgroups reflects diverse community dynamics and the influence of topical discussions on sentiment.</p>
+
+            <h2>Average Sentiment Over Time Across All Newsgroups</h2>
+            <img src="images and tables/sentiment_over_time.png" alt="Average Sentiment Over Time Across All Newsgroups">
+            <p>This line chart provides an aggregate view of sentiment trends across all newsgroups over time. The fluctuating line suggests changes in overall community mood, with periods of positive sentiment interspersed with negative dips. The broader trend appears to shift towards neutrality over time, reflecting the evolving nature of discussions as the user base and topics expand. This trend analysis helps identify significant historical events or changes in community behavior that impact overall sentiment.</p>
+
+            <h2>Sentiment Polarity Distribution</h2>
+            <img src="images and tables/sentiment_polarity_distribution.png" alt="Sentiment Polarity Distribution">
+            <p>This bar chart compares the number of comments classified as having positive versus negative sentiment. The near-equal distribution of positive and negative comments indicates a balanced sentiment within the Usenet comments, suggesting a platform with diverse opinions and discussions. This balance provides insights into the community’s engagement and the nature of interactions, where neither positive nor negative sentiments dominate completely.</p>
+
+            <h2>Sentiment Score Distribution Across All Comments</h2>
+            <img src="images and tables/sentiment_score_distribution_across_all_comments.png" alt="Sentiment Score Distribution Across All Comments">
+            <p>The histogram shows the frequency distribution of sentiment scores across all comments. A pronounced peak around the zero mark suggests a prevalence of neutral sentiments, with fewer comments exhibiting extreme positivity or negativity. The distribution tailing off towards both ends highlights the rare occurrence of highly emotional content, emphasizing the general tone of moderation in community interactions.</p>
+
+            <h2>Sentiment Trend Analysis with Rolling Average</h2>
+            <img src="images and tables/sentiment_trend_rolling_average.png" alt="Sentiment Trend Analysis with Rolling Average">
+            <p>This line plot employs a rolling average to smooth out the short-term fluctuations in sentiment scores over time, offering a clearer view of long-term trends. The densely clustered lines indicate sustained periods of sentiment stability, while noticeable trends reveal shifts in community mood. The rolling average technique enhances understanding of sentiment trends by mitigating the impact of temporary spikes or dips.</p>
+
+            <h2>Monthly Sentiment Heatmap by Newsgroup</h2>
+            <img src="images and tables/monthly_sentiment_heatmap.png" alt="Monthly Sentiment Heatmap by Newsgroup">
+            <p>This heatmap visualizes sentiment variation across different newsgroups by month. Darker shades represent higher concentrations of sentiment activity, while lighter areas indicate less sentiment variance. This visualization helps identify periods of intense sentiment and potential underlying causes, such as topical discussions or external events. It also highlights the cyclical nature of sentiment dynamics within newsgroups.</p>
+
+            <h2>Top Words in Negative Sentiment Comments</h2>
+            <img src="images and tables/word_cloud_negative_sentiment.png" alt="Top Words in Negative Sentiment Comments">
+            <p>This word cloud depicts the most frequently used words in comments with negative sentiment. Larger words appear more frequently, suggesting common themes or concerns driving negative sentiment within the community. This visualization offers insights into the issues or topics that provoke stronger emotional reactions, guiding deeper content analysis.</p>
+
+            <h2>Top Words in Positive Sentiment Comments</h2>
+            <img src="images and tables/word_cloud_positive_sentiment.png" alt="Top Words in Positive Sentiment Comments">
+            <p>This word cloud highlights the most common words in comments with positive sentiment, providing a visual summary of the language and topics that foster positive engagement within the community. Similar to the negative sentiment word cloud, larger words denote higher usage, allowing for quick identification of popular or well-received discussion topics.</p>
+        </div>
+
+        <!-- Network Analysis -->
+        <button class="collapsible">5.5 Network Analysis</button>
+        <div class="content">
+            <h2>Network Analysis</h2>
+            <p>The interactive network graph presents an in-depth view of the social dynamics among the top 20 authors based on their influence within the newsgroups. This graph visually represents the connections between these authors, highlighting the structure and strength of their interactions.</p>
+            <iframe src="images and tables/network_graph.html"></iframe>
+            <p>The network graph utilizes nodes and edges to represent authors and their interactions. Each node corresponds to an author, and its size is proportional to the author's influence, calculated by the number of connections (or edges) they have in the network.</p>
+
+            <p><strong>Color Coding:</strong> Nodes are color-coded according to their community, identified using the Louvain method for community detection. This method clusters authors who frequently interact, revealing subgroups within the network.</p>
+
+            <p><strong>Interactive Features:</strong></p>
+            <ul>
+                <li><strong>Hover Functionality:</strong> Hovering over any node displays a tooltip with comprehensive metadata about the author, including the total threads they participated in, the number of comments made, threads they started, and their influence score. Additionally, it shows a breakdown of their comments across different newsgroups, offering insights into their participation patterns.</li>
+                <li><strong>Edge Information:</strong> Edges between nodes indicate interactions or connections between authors. The thickness and color of the edges can represent the strength of these interactions, providing a clear visual cue about the intensity of their connections.</li>
+            </ul>
+
+            <p><strong>Analytical Insights:</strong></p>
+            <ul>
+                <li><strong>Community Structures:</strong> By examining the community structures, one can infer the formation of discussion clusters and their topics. For example, authors in the same cluster may discuss similar subjects or respond to each other's threads more frequently, indicating thematic cohesion.</li>
+                <li><strong>Influence Distribution:</strong> The distribution of node sizes across the graph reflects varying levels of influence among authors. Larger nodes typically represent central figures in the community who are highly active or well-connected, suggesting their significant role in driving conversations and engagement within the newsgroups.</li>
+            </ul>
+
+            <p>The interactive network graph provides a rich, detailed understanding of author interactions, highlighting both individual and collective behaviors in online discussions. By analyzing these patterns, we gain insights into the dynamics of community engagement and influence in digital environments.</p>
+        </div>
+
+        <!-- Conclusion Section -->
+        <section>
+            <h2>5.6 Conclusion</h2>
+            <p>Through this extensive analysis, we have identified key trends in user activity, sentiment, and engagement within Usenet newsgroups. The data reveals a vibrant, diverse community where certain topics and discussions foster more intense engagement and sentiment than others. The network analysis highlights the central figures driving discussions and the underlying community structures. These insights provide a foundational understanding of early online communication dynamics, offering valuable lessons for current digital platforms in fostering inclusive and engaging communities. Further research could explore the impact of external events on sentiment and engagement or the evolution of these trends over time.</p>
+        </section>
+
+    </div>
+    
+    <script src="menu.js"></script>
+    <script>
+        // JavaScript for Expandable Sections
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
