@@ -1,1 +1,0 @@
-"0","all_comments <- all_comments %>% mutate(SentimentScore = get_sentiment(Full.Text, method = ""afinn""))"

@@ -1,2 +1,0 @@
-"0","usenet_comments_all <- read.csv(file.path(comments_directory, ""combined_comments_cleaned_82TO86.csv""))"
-"0","usenet_threads_all  <- read.csv(file.path(threads_directory, ""combined_threads_cleaned_82TO86.csv""))"

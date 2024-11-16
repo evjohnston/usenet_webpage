@@ -1,4 +1,0 @@
-"0","all_threads <- all_threads %>% drop_na()"
-"0","all_comments <- all_comments %>% drop_na()"
-"0","all_comments$Date <- as.Date(all_comments$Date, format = ""%Y-%m-%d"")"
-"0","all_threads$Date <- as.Date(all_threads$Date, format = ""%Y-%m-%d"")"

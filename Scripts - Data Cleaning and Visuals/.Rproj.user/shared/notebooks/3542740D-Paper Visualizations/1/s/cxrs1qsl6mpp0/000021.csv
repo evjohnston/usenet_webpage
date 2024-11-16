@@ -1,3 +1,0 @@
-"0","# Save the plot to a PNG file with increased size"
-"0","ggsave(file.path(output_directory, ""images and tables"", ""plot_co-occurrence_network.png""), "
-"0","       plot = co_occurrence_plot, width = 20, height = 16, dpi = 300)  # Increased dimensions"

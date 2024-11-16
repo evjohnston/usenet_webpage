@@ -1,4 +1,0 @@
-"0",""
-"0","# Save the plot to a PNG file"
-"0","output_file_path <- file.path(output_directory, ""images and tables"", ""plot_time_series_sentiment_line_graph.png"")"
-"0","ggsave(output_file_path, plot = time_series_plot, width = 10, height = 6, dpi = 300)"
