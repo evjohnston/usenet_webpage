@@ -1,2 +1,0 @@
-"0","set.seed(123) # Set seed for reproducibility"
-"0","lda_model <- LDA(dtm, k = 6, control = list(seed = 123)) # 'k' is the number of topics, adjust as needed"

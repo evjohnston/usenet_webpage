@@ -1,4 +1,0 @@
-"0",""
-"0","# Save the plot"
-"0","output_file_path <- file.path(output_directory, ""images and tables"", ""plot_influence_propagation_network_improved.png"")"
-"0","ggsave(output_file_path, plot = influence_plot, width = 20, height = 16, dpi = 300)"
