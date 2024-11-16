@@ -184,7 +184,7 @@ totals <- keywords_summary_df %>%
 keywords_summary_df <- bind_rows(keywords_summary_df, totals)
 
 # Correctly construct the output file path
-output_file_path <- file.path(output_directory, "images and tables", "table_descriptive_statistics_aids_relevancy_filtered.html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_aids_relevancy_filtered.html")
 
 # Ensure the directory exists
 dir.create(dirname(output_file_path), recursive = TRUE, showWarnings = FALSE)
@@ -308,7 +308,7 @@ gt_table <- reshaped_df %>%
 gt_table
 
 # Save the gt table to an HTML file
-output_file_path <- file.path(output_directory, "images and tables", "table_top_terms_and_betas_(all_authors).html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_top_terms_and_betas_(all_authors).html")
 gtsave(gt_table, output_file_path)
 ```
 
@@ -403,7 +403,7 @@ co_occurrence_plot <- ggplot(graph_layout, aes(x = x, y = y)) +
 print(co_occurrence_plot)
 
 # Save the plot to a PNG file with increased size
-ggsave(file.path(output_directory, "images and tables", "plot_co-occurrence_network.png"), 
+ggsave(file.path(output_directory, "Images and Tables/Images", "plot_co-occurrence_network.png"), 
        plot = co_occurrence_plot, width = 20, height = 16, dpi = 300)  # Increased dimensions
 ```
 
@@ -524,7 +524,7 @@ influential_authors_metadata_with_totals <- bind_rows(influential_authors_metada
 # Display the updated table with totals
 print(influential_authors_metadata_with_totals)
 
-output_file_path <- file.path(output_directory, "images and tables", "table_descriptive_statistics_influential_authors.html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_influential_authors.html")
 tab_df(influential_authors_metadata_with_totals, file = output_file_path)
 ```
 
@@ -552,7 +552,7 @@ combined_sentiment_stats <- bind_rows(
   select(Dataset, everything())  # Ensure 'Dataset' column is the first column
 
 # Correctly construct the output file path
-output_file_path <- file.path(output_directory, "images and tables", "table_descriptive_statistics_sentiment_scores_combined.html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_sentiment_scores_combined.html")
 
 combined_sentiment_stats
 
@@ -635,7 +635,7 @@ time_series_plot <- time_series_plot +
 print(time_series_plot)
 
 # Save the plot to a PNG file
-output_file_path <- file.path(output_directory, "images and tables", "plot_time_series_sentiment_line_graph.png")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_time_series_sentiment_line_graph.png")
 ggsave(output_file_path, plot = time_series_plot, width = 10, height = 6, dpi = 300)
 ```
 
@@ -738,7 +738,7 @@ gt_table <- reshaped_df %>%
 gt_table
 
 # Save the gt table to an HTML file
-output_file_path <- file.path(output_directory, "images and tables", "table_top_terms_and_betas_(influential_authors).html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_top_terms_and_betas_(influential_authors).html")
 gtsave(gt_table, output_file_path)
 ```
 
@@ -784,7 +784,7 @@ best_matches <- topic_similarities %>%
 
 print(best_matches)
 
-output_file_path <- file.path(output_directory, "images and tables", "table_topic_matches.html")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_topic_matches.html")
 
 tab_df(best_matches, ,
   file = output_file_path)
@@ -795,7 +795,7 @@ transposed_best_matches <- as.data.frame(t(best_matches))
 # Display the transposed table
 print(transposed_best_matches)
 
-output_file_path_transposed <- file.path(output_directory, "images and tables", "table_topic_matches_transposed.html")
+output_file_path_transposed <- file.path(output_directory, "Images and Tables/Images", "table_topic_matches_transposed.html")
 tab_df(transposed_best_matches,
   file = output_file_path_transposed)
 ```
@@ -817,7 +817,7 @@ similarity_plot <- ggplot(best_matches, aes(x = factor(Influential_Topic), y = S
 
 similarity_plot
 
-ggsave(file.path(output_directory, "images and tables", "plot_topic_influence_comparison_bar_graph.png"), 
+ggsave(file.path(output_directory, "Images and Tables/Images", "plot_topic_influence_comparison_bar_graph.png"), 
        width = 10, height = 6, dpi = 300)
 ```
     
@@ -879,7 +879,7 @@ line_plot <- ggplot(monthly_topic_prevalence, aes(x = Month, y = Prevalence, col
 print(line_plot)
 
 # Save the plot with a higher DPI for better clarity
-output_file_path <- file.path(output_directory, "images and tables", "plot_topic_prevalence_line_graph.png")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_topic_prevalence_line_graph.png")
 ggsave(output_file_path, plot = line_plot, width = 12, height = 8, dpi = 300)
 ```
 
@@ -926,7 +926,7 @@ bar_plot <- ggplot(top_15_data, aes(x = Number_of_Comments, y = reorder(Author, 
 print(bar_plot)
 
 # Save the plot to a file
-output_file_path <- file.path(output_directory, "images and tables/plot_top_15_most_active_users_by_newsgroup.png")
+output_file_path <- file.path(output_directory, "Images and Tables/Images/plot_top_15_most_active_users_by_newsgroup.png")
 ggsave(output_file_path, plot = bar_plot, width = 10, height = 6, dpi = 300)
 ```
 ```{r Thematic evolution}
@@ -987,7 +987,7 @@ keyword_adoption_plot <- ggplot(combined_prevalence, aes(x = Date, y = prevalenc
 print(keyword_adoption_plot)
 
 # Save the plot
-output_file_path <- file.path(output_directory, "images and tables", "plot_keyword_adoption_over_time.png")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_keyword_adoption_over_time.png")
 ggsave(output_file_path, plot = keyword_adoption_plot, width = 16, height = 10, dpi = 300)
 ```
 
@@ -1046,7 +1046,7 @@ influence_plot <- ggraph(layout) +
 print(influence_plot)
 
 # Save the plot
-output_file_path <- file.path(output_directory, "images and tables", "plot_influence_propagation_network_improved.png")
+output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_influence_propagation_network_improved.png")
 ggsave(output_file_path, plot = influence_plot, width = 20, height = 16, dpi = 300)
 ```
 # For Webpage
@@ -1130,7 +1130,7 @@ network_vis <- visNetwork(nodes, edges, width = "100%", height = "90vh") %>%
   )
 
 # Save the network graph to an HTML file with full width and height
-network_graph_path <- file.path(output_directory, "images and tables/new web visualizations/interactive_plot_3d_cooccurrence_network.html")
+network_graph_path <- file.path(output_directory, "Images and Tables/Images/new web visualizations/interactive_plot_3d_cooccurrence_network.html")
 visSave(network_vis, file = network_graph_path)
 
 # Custom title and legend creation in HTML
