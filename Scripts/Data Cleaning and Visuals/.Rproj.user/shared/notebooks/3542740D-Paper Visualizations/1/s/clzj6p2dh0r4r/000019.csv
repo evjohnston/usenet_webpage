@@ -1,0 +1,4 @@
+"0",""
+"0","# Save the plot"
+"0","output_file_path <- file.path(output_directory, ""images and tables"", ""plot_keyword_adoption_over_time.png"")"
+"0","ggsave(output_file_path, plot = keyword_adoption_plot, width = 16, height = 10, dpi = 300)"

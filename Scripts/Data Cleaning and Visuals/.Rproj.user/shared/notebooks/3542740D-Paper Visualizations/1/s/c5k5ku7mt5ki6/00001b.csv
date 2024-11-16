@@ -1,0 +1,3 @@
+"0",""
+"0","output_file_path <- file.path(output_directory, ""images and tables"", ""table_descriptive_statistics_influential_authors.html"")"
+"0","tab_df(influential_authors_metadata_with_totals, file = output_file_path)"

@@ -1,0 +1,4 @@
+"0",""
+"0","# Save the plot with a higher DPI for better clarity"
+"0","output_file_path <- file.path(output_directory, ""images and tables"", ""plot_topic_prevalence_line_graph.png"")"
+"0","ggsave(output_file_path, plot = line_plot, width = 12, height = 8, dpi = 300)"

@@ -1,0 +1,23 @@
+"0","import seaborn as sns"
+"0",""
+"0","plt.figure(figsize=(12, 6))"
+"1","<Figure size 1200x600 with 0 Axes>
+"
+"0","sns.boxplot(x='newsgroup', y='SentimentScore', data=all_comments)"
+"0","<Axes: xlabel='newsgroup', ylabel='SentimentScore'>
+"
+"1","Text(0.5, 1.0, 'Sentiment Distribution by Newsgroup')
+"
+"0","plt.xlabel('Newsgroup')"
+"1","Text(0.5, 0, 'Newsgroup')
+"
+"0","plt.ylabel('Sentiment Score')"
+"1","Text(0, 0.5, 'Sentiment Score')
+"
+"0","plt.xticks(rotation=45)"
+"1","([0, 1, 2, 3, 4, 5], [Text(0, 0, 'netmed'), Text(1, 0, 'netmotss'), Text(2, 0, 'netnews'), Text(3, 0, 'netpolitics'), Text(4, 0, 'netreligion'), Text(5, 0, 'netsingles')])
+"
+"0","plt.tight_layout()"
+"0","plt.savefig(os.path.join(output_directory, ""images and tables/old web visualizations/sentiment_distribution_by_newsgroup.png""))"
+"0","plt.show()"
+"0",""

@@ -1,0 +1,33 @@
+"0","# Define positive and negative sentiment based on threshold"
+"0","positive_threshold = 0"
+"0","all_comments['SentimentPolarity'] = all_comments['SentimentScore'].apply(lambda x: 'Positive' if x > positive_threshold else 'Negative')"
+"2","<string>:1: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+"
+"0","plt.figure(figsize=(8, 6))"
+"1","<Figure size 800x600 with 0 Axes>
+"
+"0","sns.countplot(data=all_comments, x='SentimentPolarity', palette=['red', 'green'])"
+"2","<string>:1: FutureWarning: 
+
+Passing `palette` without assigning `hue` is deprecated and will be removed in v0.14.0. Assign the `x` variable to `hue` and set `legend=False` for the same effect.
+
+"
+"1","<Axes: xlabel='SentimentPolarity', ylabel='count'>
+"
+"0","plt.title('Sentiment Polarity Distribution')"
+"1","Text(0.5, 1.0, 'Sentiment Polarity Distribution')
+"
+"0","plt.xlabel('Sentiment Polarity')"
+"1","Text(0.5, 0, 'Sentiment Polarity')
+"
+"0","plt.ylabel('Number of Comments')"
+"1","Text(0, 0.5, 'Number of Comments')
+"
+"0","plt.tight_layout()"
+"0","plt.savefig(os.path.join(output_directory, ""images and tables/sentiment_polarity_distribution.png""))"
+"0","plt.show()"
+"0",""

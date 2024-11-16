@@ -1,0 +1,15 @@
+"0","plt.figure(figsize=(10, 6))"
+"1","<Figure size 1000x600 with 0 Axes>
+"
+"0","sns.countplot(data=all_comments, x='newsgroup', order=all_comments['newsgroup'].value_counts().index)"
+"1","<Axes: xlabel='newsgroup', ylabel='count'>
+"
+"0","plt.xticks(rotation=45)"
+"1","Text(0.5, 1.0, 'Distribution of Comments per Newsgroup')
+"
+"1","([0, 1, 2, 3, 4, 5], [Text(0, 0, 'netsingles'), Text(1, 0, 'netpolitics'), Text(2, 0, 'netreligion'), Text(3, 0, 'netmotss'), Text(4, 0, 'netmed'), Text(5, 0, 'netnews')])
+"
+"0","plt.tight_layout()"
+"0","plt.savefig(os.path.join(output_directory, ""images and tables/distribution_of_comments_per_newsgroup.png""))"
+"0","plt.show()"
+"0",""
