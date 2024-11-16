@@ -11,7 +11,7 @@ output:
 # Maintenance for R and Python.
 ```{r Reset and Setup}
 rm(list = ls()) 
-knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_AIDs_discourses_webpage')
+knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_webpage')
 ```
 
 ```{r R Load Libraries, Directories, and Datasets}
@@ -30,9 +30,9 @@ library(tm)
 library(SnowballC)
 
 # Load Directories
-output_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage"
-threads_directory <- "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Threads"
-comments_directory <- "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Comments"
+output_directory = "/Users/emerson/Github/usenet_webpage"
+threads_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Threads"
+comments_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Comments"
 
 # Load the datasets
 all_threads <- read.csv(file.path(threads_directory, "aids_related_threads_82TO86.csv"))
@@ -58,1101 +58,905 @@ import networkx as nx
 import scipy
 
 # Define directories
-output_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/"
-threads_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Threads/"
-comments_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Comments/"
+output_directory = "/Users/emerson/Github/usenet_webpage/"
+IT_directory = "/Users/emerson/Github/usenet_webpage/Images and Tables/"
+threads_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Threads/"
+comments_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Comments/"
+images_dir = os.path.join(IT_directory, "Images")
+tables_dir = os.path.join(IT_directory, "Tables")
 
 # Load the datasets with the correct file paths
 all_threads = pd.read_csv(os.path.join(threads_directory, "aids_related_threads_82TO86.csv"))
 all_comments = pd.read_csv(os.path.join(comments_directory, "aids_related_comments_82TO86.csv"))
 ```
 
-```{r Filtering For Relevancy}
-# Calculate the minimum and maximum of the 'Thread_Relevancy' column
-min_value <- min(all_threads$Thread_Relevancy, na.rm = TRUE)
-max_value <- max(all_threads$Thread_Relevancy, na.rm = TRUE)
-
-# Create four equal-sized bins between the min and max values
-breaks <- seq(min_value, max_value, length.out = 5) 
-
-# Create a factor for quartile ranges based on these breaks
-all_threads$Quartile <- cut(
-  all_threads$Thread_Relevancy,
-  breaks = breaks,
-  labels = c("Q1", "Q2", "Q3", "Q4"),
-  include.lowest = TRUE
-)
-
-# Plot the bar graph showing the frequency of each quartile
-ggplot(all_threads, aes(x = Quartile)) +
-  geom_bar(fill = "skyblue", color = "black") +
-  geom_text(stat='count', aes(label=..count..), vjust=-0.5) +  # Add labels above bars
-  labs(title = "Frequency of Thread Relevancy Quartiles",
-       x = "Quartile",
-       y = "Frequency") +
-  theme_bw()
-
-# Define the bin width manually
-bin_width <- 0.5
-
-# Plot the histogram with density overlay using all_threads
-ggplot(all_threads, aes(x = Thread_Relevancy)) +
-  geom_histogram(aes(y = ..count..), binwidth = bin_width, fill = "skyblue", color = "black", alpha = 0.7) + 
-  geom_density(aes(y = ..density.. * length(all_threads$Thread_Relevancy) * bin_width), fill = "orange", alpha = 0.4) +  # Scale density to match histogram counts
-  labs(title = "Histogram and Density of Thread Relevancy Scores",
-       x = "Relevancy",
-       y = "Number of Threads") +
-  theme_bw()
-```
-
-```{r Filtering Out Quartile 1}
-filtered_threads <- all_threads %>%
-  filter(Quartile != "Q1")
-
-# Plot the bar graph showing the frequency of each quartile
-ggplot(filtered_threads, aes(x = Quartile)) +
-  geom_bar(fill = "skyblue", color = "black") +
-  geom_text(stat='count', aes(label=..count..), vjust=-0.5) +  # Add labels above bars
-  labs(title = "Frequency of Thread Relevancy Quartiles",
-       x = "Quartile",
-       y = "Frequency") +
-  theme_bw()
-
-# Define the bin width manually
-bin_width <- 0.5
-
-# Plot the histogram with density overlay using all_threads
-ggplot(filtered_threads, aes(x = Thread_Relevancy)) +
-  geom_histogram(aes(y = ..count..), binwidth = bin_width, fill = "skyblue", color = "black", alpha = 0.7) + 
-  geom_density(aes(y = ..density.. * bin_width * nrow(all_threads)), fill = "orange", alpha = 0.4) +  # Scale density to match histogram counts
-  labs(title = "Histogram and Density of Thread Relevancy Scores",
-       x = "Relevancy",
-       y = "Number of Threads") +
-  theme_bw()
-```
-```{r Get Filtered Comments from Filtered Threads}
-# Filter threads with only one comment out of filtered threads 
-filtered_threads <- filtered_threads %>%
-  filter(Number.of.Messages > 1)
-
-# Filter the comments from 'all_comments' that match the filtered threads
-filtered_comments <- all_comments %>%
-  filter(Thread.ID %in% filtered_threads$Unique_ThreadID)
-
-# Check the result
-head(filtered_comments)
-```
-
-```{r Relevancy Filtered Descriptive Statistics}
-# Step 1: Group by newsgroup and calculate required statistics, including comment relevancy
-keywords_summary_df <- filtered_comments %>%
-  group_by(newsgroup) %>%
-  summarize(
-    Unique_Authors = n_distinct(Author),
-    Comments_with_Keywords = sum(Relevancy > 0),
-    Conversations_Mentioned_In = n_distinct(Thread.ID),
-    Total_Comments_In_Threads = n(),
-    Percent_Total_Comments_w_Keyword = (Comments_with_Keywords / Total_Comments_In_Threads) * 100,
-    Average_Relevancy_Score = mean(Relevancy, na.rm = TRUE)
-  )
-
-# Step 2: Calculate thread relevancy averages for filtered threads
-threads_summary_df_grouped <- filtered_threads %>%
-  group_by(newsgroup) %>%
-  summarize(Average_Thread_Relevancy = mean(Thread_Relevancy, na.rm = TRUE))
-
-# Step 3: Combine comment and thread summaries
-keywords_summary_df <- keywords_summary_df %>%
-  left_join(threads_summary_df_grouped, by = "newsgroup")
-
-total_unique_authors <- n_distinct(filtered_comments$Author)
-
-# Step 4: Add a totals row
-totals <- keywords_summary_df %>%
-  summarize(
-    newsgroup = "Total",
-    Comments_with_Keywords = sum(Comments_with_Keywords),
-    Conversations_Mentioned_In = sum(Conversations_Mentioned_In),
-    Total_Comments_In_Threads = sum(Total_Comments_In_Threads),
-    Unique_Authors = total_unique_authors,
-    Percent_Total_Comments_w_Keyword = (Comments_with_Keywords / Total_Comments_In_Threads) * 100,
-    Average_Relevancy_Score = mean(Average_Relevancy_Score, na.rm = TRUE),
-    Average_Thread_Relevancy = mean(Average_Thread_Relevancy, na.rm = TRUE)
-  )
-
-# Step 5: Combine the summary with the totals row
-keywords_summary_df <- bind_rows(keywords_summary_df, totals)
-
-# Correctly construct the output file path
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_aids_relevancy_filtered.html")
-
-# Ensure the directory exists
-dir.create(dirname(output_file_path), recursive = TRUE, showWarnings = FALSE)
-
-# Use the constructed path for saving the file
-tab_df(keywords_summary_df, file = output_file_path)
-```
-
-# Theme Prevelance Hypothesis
-```{r Data Preparation}
-# Load required libraries
-library(tm)
-
-# Data preparation: Select relevant text data
-comments_corpus <- Corpus(VectorSource(filtered_comments$Full.Text))  # Replace 'Full.Text' with the actual column name containing text data
-
-# Text preprocessing
-comments_corpus <- comments_corpus %>%
-  tm_map(content_transformer(tolower)) %>%                   # Convert text to lowercase
-  tm_map(content_transformer(function(x) gsub("[^[:alnum:] ]", " ", x))) %>%  # Remove non-alphanumeric characters
-  tm_map(removePunctuation) %>%                               # Remove punctuation
-  tm_map(removeNumbers) %>%                                   # Remove numbers
-  tm_map(removeWords, stopwords("english")) %>%               # Remove common stop words
-  # tm_map(stemDocument) %>%                                  # Perform stemming (optional)
-  tm_map(stripWhitespace)                                     # Strip whitespace
-
-# Create Document-Term Matrix (DTM)
-dtm <- DocumentTermMatrix(comments_corpus)
-
-# Remove sparse terms to reduce the size of DTM
-dtm <- removeSparseTerms(dtm, 0.90)  # Adjust sparsity threshold if necessary
-
-# Check for rows with all zero entries and remove them
-row_totals <- apply(dtm, 1, sum)
-dtm <- dtm[row_totals > 0, ]
-```
-
-```{r How Many Topics, eval=FALSE, include=FALSE}
-# Optimize LDA to find the best number of topics
-set.seed(123)
-result <- FindTopicsNumber(
-  dtm,
-  topics = seq(from = 2, to = 10, by = 1),  # Narrow topic range for faster computation
-  metrics = c("Griffiths2004", "Deveaud2014", "CaoJuan2009", "Arun2010"),  # Use fewer metrics
-  method = "Gibbs",
-  control = list(seed = 123, iter = 200),  # Fewer iterations for quicker results
-  mc.cores = 2L,
-  verbose = TRUE
-)
-```
-
-```{r Plot How Many Topics, eval=FALSE, include=FALSE}
-# Plot results to determine the optimal number of topics
-FindTopicsNumber_plot(result)
-```
-Six Topics! 
-
-```{r LDA Model}
-set.seed(123) # Set seed for reproducibility
-lda_model <- LDA(dtm, k = 6, control = list(seed = 123)) # 'k' is the number of topics, adjust as needed
-```
-
-```{r Top Terms}
-# Load required libraries
-library(tidyr)
-library(dplyr)
-library(sjPlot)
-
-# Visualize the top terms for each topic (concise visualization)
-top_terms_df <- tidy(lda_model, matrix = "beta") %>%
-  group_by(topic) %>%
-  top_n(20, beta) %>%
-  ungroup() %>%
-  arrange(topic, -beta)
-
-# Round beta values to 3 decimal places
-top_terms_df <- top_terms_df %>%
-  mutate(beta = round(beta, 3))
-
-# Reshape the data frame to have each topic's terms and betas side by side
-reshaped_df <- top_terms_df %>%
-  group_by(topic) %>%
-  mutate(term_id = row_number()) %>%
-  ungroup() %>%
-  pivot_wider(
-    names_from = topic,
-    values_from = c(term, beta),
-    names_glue = "Topic_{topic}_{.value}"
-  )
-
-reshaped_df <- reshaped_df %>%
-  select(term_id, 
-         starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
-         starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
-         starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
-         starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
-         starts_with("Topic_5_term"), starts_with("Topic_5_beta"),
-         starts_with("Topic_6_term"), starts_with("Topic_6_beta"))
-
-library(dplyr)
-library(gt)
-
-# Create the gt table
-gt_table <- reshaped_df %>%
-  gt() %>%
-  tab_spanner(label = "Topic 1", columns = c("Topic_1_term", "Topic_1_beta")) %>%
-  tab_spanner(label = "Topic 2", columns = c("Topic_2_term", "Topic_2_beta")) %>%
-  tab_spanner(label = "Topic 3", columns = c("Topic_3_term", "Topic_3_beta")) %>%
-  tab_spanner(label = "Topic 4", columns = c("Topic_4_term", "Topic_4_beta")) %>%
-  tab_spanner(label = "Topic 5", columns = c("Topic_5_term", "Topic_5_beta")) %>%
-  tab_spanner(label = "Topic 6", columns = c("Topic_6_term", "Topic_6_beta")) %>%
-  cols_label(
-    term_id = "Term No.",
-    Topic_1_term = "term", Topic_1_beta = "beta", 
-    Topic_2_term = "term", Topic_2_beta = "beta",
-    Topic_3_term = "term", Topic_3_beta = "beta", 
-    Topic_4_term = "term", Topic_4_beta = "beta",
-    Topic_5_term = "term", Topic_5_beta = "beta", 
-    Topic_6_term = "term", Topic_6_beta = "beta")
-
-gt_table
-
-# Save the gt table to an HTML file
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_top_terms_and_betas_(all_authors).html")
-gtsave(gt_table, output_file_path)
-```
-
-```{r Co-occurrence Network Analysis}
-library(ggforce)
-library(ggrepel)
-library(ggplot2)
-library(igraph)
-
-# Step 1: Calculate Term Frequencies and Filter for Top Terms
-co_occurrence <- crossprod(as.matrix(dtm)) # Create co-occurrence matrix
-
-binary_dtm <- as.matrix(dtm)
-binary_dtm[binary_dtm > 0] <- 1  # Convert counts to 1s
-
-# Step 2: Calculate document frequency for each term
-term_frequency <- colSums(binary_dtm)
-
-# Set a threshold to filter less relevant terms based on frequency
-threshold <- quantile(term_frequency, 0.75) # Set threshold for top 25% most frequent terms
-filtered_terms <- which(term_frequency > threshold)
-filtered_co_occurrence <- co_occurrence[filtered_terms, filtered_terms]
-
-# Step 2: Create a Graph Object with Filtered Terms
-graph <- graph_from_adjacency_matrix(filtered_co_occurrence, weighted = TRUE, mode = "undirected", diag = FALSE)
-
-# Step 3: Simplify the Graph to Avoid Self-Loops and Redundant Edges
-graph <- simplify(graph)
-
-# Step 4: Assign Topics to Terms Based on the LDA Model
-terms <- rownames(filtered_co_occurrence) # Extract terms from the filtered co-occurrence matrix
-term_topic_probs <- posterior(lda_model)$terms[, terms] # Extract term-topic probabilities for the filtered terms
-term_topic_assignment <- apply(term_topic_probs, 2, which.max) # Assign each term to the topic with the highest probability
-
-# Create a data frame mapping terms to topics
-term_topic_df <- data.frame(term = terms, topic = factor(term_topic_assignment))
-
-# Increase the repulsion and area in the layout algorithm
-set.seed(123)  # For reproducibility
-graph_layout <- create_layout(graph, layout = layout_with_fr(graph, niter = 5000, area = vcount(graph)^3.5, repulserad = vcount(graph)^3.5))
-
-# Normalize the layout to ensure it fits within the plot
-graph_layout$x <- scale(graph_layout$x, center = TRUE, scale = TRUE) * 4  # Increase spread
-graph_layout$y <- scale(graph_layout$y, center = TRUE, scale = TRUE) * 4  # Increase spread
-
-# Create intuitive topic names based on LDA results
-topic_names <- c(
-  "Topic 1",
-  "Topic 2",
-  "Topic 3",
-  "Topic 4",
-  "Topic 5",
-  "Topic 6"
-)
-term_topic_df$topic_name <- topic_names[term_topic_df$topic]
-
-# Create the improved plot with simplified legend
-co_occurrence_plot <- ggplot(graph_layout, aes(x = x, y = y)) +
-  geom_edge_link(aes(edge_alpha = weight), edge_width = 0.3, color = "gray70", alpha = 0.3) +
-  geom_node_point(aes(size = log1p(term_frequency[filtered_terms]), color = term_topic_df$topic_name), show.legend = TRUE, alpha = 0.8) +
-  geom_text_repel(aes(label = name), 
-                  max.overlaps = 20,
-                  force = 10,
-                  point.padding = 0.5,
-                  segment.color = "gray50",
-                  min.segment.length = 0,
-                  box.padding = 0.7,
-                  segment.size = 0.2,
-                  size = 8) +
-  geom_mark_hull(aes(group = term_topic_df$topic_name, fill = term_topic_df$topic_name), 
-                 alpha = 0.1, show.legend = FALSE) +
-  scale_size(range = c(2, 12), name = "Term Frequency") +
-  scale_color_brewer(palette = "Set1", name = "Topic") +
-  scale_fill_brewer(palette = "Set1", guide = "none") +  # Remove fill from legend
-  coord_cartesian(xlim = c(-9, 9), ylim = c(-9, 9)) +
-  theme_void(base_size = 16) +
-  theme(
-    aspect.ratio = 1,
-    legend.position = "right",
-    legend.box = "vertical",
-    plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
-    plot.margin = margin(40, 40, 40, 40),
-    plot.background = element_rect(fill = "white", color = NA),
-    legend.text = element_text(size = 10),
-    legend.title = element_text(size = 12)
-  ) +
-  guides(color = guide_legend(override.aes = list(size = 5))) +
-  labs(title = "Co-occurrence Network of Key Themes in AIDS Discussion",
-       caption = "Node size represents term frequency. Colors indicate topics identified by LDA.")
-
-# Display the plot
-print(co_occurrence_plot)
-
-# Save the plot to a PNG file with increased size
-ggsave(file.path(output_directory, "Images and Tables/Images", "plot_co-occurrence_network.png"), 
-       plot = co_occurrence_plot, width = 20, height = 16, dpi = 300)  # Increased dimensions
-```
-
-# Emotional Tone Hypothesis
-```{r Load All Datasets}
-usenet_comments_all <- read.csv(file.path(comments_directory, "combined_comments_cleaned_82TO86.csv"))
-usenet_threads_all  <- read.csv(file.path(threads_directory, "combined_threads_cleaned_82TO86.csv"))
-```
-
-```{r Descriptive Statistics Related to Sentiment}
-library(moments)
-
-# Calculate descriptive statistics for AIDS-related discussions
-aids_sentiment_stats <- filtered_comments %>%
-  summarize(
-    Min = min(SentimentScore, na.rm = TRUE),
-    Max = max(SentimentScore, na.rm = TRUE),
-    Range = max(SentimentScore, na.rm = TRUE) - min(SentimentScore, na.rm = TRUE),
-    Mean = mean(SentimentScore, na.rm = TRUE),
-    Median = median(SentimentScore, na.rm = TRUE),
-    SD = sd(SentimentScore, na.rm = TRUE),
-    Skewness = skewness(SentimentScore, na.rm = TRUE),
-    Kurtosis = kurtosis(SentimentScore, na.rm = TRUE)
-  ) %>%
-  mutate(Dataset = "Dataset Three")
-
-# Calculate descriptive statistics for the entire Usenet dataset
-usenet_sentiment_stats <- usenet_comments_all %>%
-  summarize(
-    Min = min(SentimentScore, na.rm = TRUE),
-    Max = max(SentimentScore, na.rm = TRUE),
-    Range = max(SentimentScore, na.rm = TRUE) - min(SentimentScore, na.rm = TRUE),
-    Mean = mean(SentimentScore, na.rm = TRUE),
-    Median = median(SentimentScore, na.rm = TRUE),
-    SD = sd(SentimentScore, na.rm = TRUE),
-    Skewness = skewness(SentimentScore, na.rm = TRUE),
-    Kurtosis = kurtosis(SentimentScore, na.rm = TRUE)
-  ) %>%
-  mutate(Dataset = "Dataset One")
-
-# Combine the descriptive statistics into one table
-combined_sentiment_stats <- bind_rows(aids_sentiment_stats, usenet_sentiment_stats) %>%
-  select(Dataset, everything())  # Ensure 'Dataset' column is the first column
-
-combined_sentiment_stats
-```
-
-```{r Identify Influential Authors by Number of Connections}
-# Load necessary libraries
-library(dplyr)
-library(igraph)
-
-# Step 1: Create an edge list based on co-participation in threads
-edges <- filtered_comments %>%
-  filter(Thread.ID != "") %>%  # Ensure Thread.ID is not empty
-  group_by(Thread.ID) %>%
-  filter(n() > 1) %>%  # Only consider threads with more than one comment
-  summarize(edgelist = list(combn(Author, 2, simplify = FALSE))) %>%  # Create pairwise combinations of authors
-  unnest(edgelist) %>%
-  unnest_wider(edgelist, names_sep = "") %>%
-  rename(source = edgelist1, target = edgelist2) %>%
-  filter(source != target) %>%  # Remove self-loops
-  group_by(source, target) %>%
-  summarize(weight = n(), .groups = 'drop')  # Count the number of co-participations as edge weight
-
-# Step 2: Create a graph object from the edge list
-graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
-
-# Step 3: Calculate the degree (number of connections) for each author
-author_influence <- data.frame(
-  Author = igraph::V(graph)$name,
-  Influence = igraph::degree(graph)
-)
-
-# Step 4: Identify the top 15 most influential authors
-top_influential_authors <- author_influence %>%
-  arrange(desc(Influence)) %>%  # Sort authors by descending influence
-  slice(1:15)  # Select the top 15 authors
-
-# Display the list of top 15 influential authors
-print(top_influential_authors)
-
-# Filter the all_comments dataset to only include posts by the top 15 influential authors
-top_authors_comments <- filtered_comments %>%
-  filter(Author %in% top_influential_authors$Author)
-
-# Assuming `top_authors_comments` already filters the dataset for top influential authors
-top_authors_comments_summary <- top_authors_comments %>%
-  group_by(Author) %>%
-  summarize(
-    Num_Comments = n(),  # Number of comments
-    Num_Threads = n_distinct(Thread.ID),  # Number of unique threads
-    Threads_Started = sum(Thread_Relative_CommentID == "CM00004", na.rm = TRUE),  # Number of threads started
-    Avg_Sentiment = mean(SentimentScore, na.rm = TRUE),  # Average sentiment score
-    Avg_Relevancy = mean(Relevancy, na.rm = TRUE)  # Average relevancy score
-  )
-
-# Merge this summary with the original `top_influential_authors` dataframe if needed
-influential_authors_metadata <- top_influential_authors %>%
-  left_join(top_authors_comments_summary, by = "Author")
-
-
-# Calculate totals for each numeric column
-totals_row <- influential_authors_metadata %>%
-  summarize(
-    Author = "Total",
-    Influence = sum(Influence, na.rm = TRUE),
-    Num_Comments = sum(Num_Comments, na.rm = TRUE),
-    Num_Threads = sum(Num_Threads, na.rm = TRUE),
-    Threads_Started = sum(Threads_Started, na.rm = TRUE),
-    Avg_Sentiment = mean(Avg_Sentiment, na.rm = TRUE),  # This is an average; sum might not make sense for sentiment
-    Avg_Relevancy = mean(Avg_Relevancy, na.rm = TRUE)   # This is an average; sum might not make sense for relevancy
-  )
-
-# Bind the totals row to the bottom of the dataframe
-influential_authors_metadata_with_totals <- bind_rows(influential_authors_metadata, totals_row)
-
-# Display the updated table with totals
-print(influential_authors_metadata_with_totals)
-
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_influential_authors.html")
-tab_df(influential_authors_metadata_with_totals, file = output_file_path)
-```
-
-```{r Calculate and Print Author Influence on Sentiment Scores}
-# Calculate descriptive statistics for the sentiment scores of influential authors
-influential_authors_sentiment_stats <- top_authors_comments %>%
-  summarize(
-    Min = min(SentimentScore, na.rm = TRUE),
-    Max = max(SentimentScore, na.rm = TRUE),
-    Range = max(SentimentScore, na.rm = TRUE) - min(SentimentScore, na.rm = TRUE),
-    Mean = mean(SentimentScore, na.rm = TRUE),
-    Median = median(SentimentScore, na.rm = TRUE),
-    SD = sd(SentimentScore, na.rm = TRUE),
-    Skewness = skewness(SentimentScore, na.rm = TRUE),
-    Kurtosis = kurtosis(SentimentScore, na.rm = TRUE)
-  ) %>%
-  mutate(Dataset = "Dataset Four")
-
-# Combine the sentiment statistics into one table
-combined_sentiment_stats <- bind_rows(
-  usenet_sentiment_stats,  # Entire Usenet dataset
-  aids_sentiment_stats,  # AIDS-related discussions
-  influential_authors_sentiment_stats  # Influential authors
-) %>%
-  select(Dataset, everything())  # Ensure 'Dataset' column is the first column
-
-# Correctly construct the output file path
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_descriptive_statistics_sentiment_scores_combined.html")
-
-combined_sentiment_stats
-
-# Display the combined descriptive statistics table using sjPlot
-tab_df(
-  combined_sentiment_stats,
-  title = "Descriptive Statistics for Sentiment Scores of Different Datasets",
-  show.rownames = FALSE,
-  show.ci = FALSE,
-  show.p = FALSE,
-  digits = 2,
-  file = output_file_path)
-```
-
-```{r Time Series Plot of Sentiment Scores}
-# Ensure necessary libraries are loaded
-library(ggplot2)
-library(dplyr)
-
-# Convert Date columns to Date type
-filtered_comments$Date <- as.Date(filtered_comments$Date)
-usenet_comments_all$Date <- as.Date(usenet_comments_all$Date)
-
-# Calculate monthly average sentiment scores for AIDS-related discussions
-monthly_sentiment_aids <- filtered_comments %>%
-  group_by(Month = as.Date(format(Date, "%Y-%m-01"))) %>%
-  summarize(AverageSentiment = mean(SentimentScore, na.rm = TRUE))
-
-# Calculate monthly average sentiment scores for the entire Usenet dataset
-monthly_sentiment_usenet <- usenet_comments_all %>%
-  group_by(Month = as.Date(format(Date, "%Y-%m-01"))) %>%
-  summarize(AverageSentiment = mean(SentimentScore, na.rm = TRUE))
-
-# Filter the all_comments dataset to only include posts by the top 15 influential authors
-top_authors_comments <- filtered_comments %>%
-  filter(Author %in% top_influential_authors$Author)
-
-# Calculate monthly average sentiment scores for the influential authors
-monthly_sentiment_influential <- top_authors_comments %>%
-  group_by(Month = as.Date(format(Date, "%Y-%m-01"))) %>%
-  summarize(AverageSentiment = mean(SentimentScore, na.rm = TRUE))
-
-# Combine the datasets for plotting
-combined_monthly_sentiment <- bind_rows(
-  monthly_sentiment_usenet %>% mutate(Dataset = "Dataset One"),
-  monthly_sentiment_aids %>% mutate(Dataset = "Dataset Three"),
-  monthly_sentiment_influential %>% mutate(Dataset = "Influential Authors")
-)
-
-# Create the time series plot with a white background and no legend title
-time_series_plot <- ggplot(combined_monthly_sentiment, aes(x = Month, y = AverageSentiment, color = Dataset)) +
-  geom_line(size = 1.2) + 
-  labs(
-    title = "Time Series of Average Sentiment Scores Over Time",
-    x = "Month",
-    y = "Average Sentiment Score"
-  ) +
-  theme_bw() +  # Use theme_bw() for a white background
-  theme(legend.position = "bottom") +
-  guides(color = guide_legend(title = NULL))  # Remove the legend title
-
-# Add key event annotations
-key_events <- data.frame(
-  date = as.Date(c("1982-05-11", "1983-09-30", "1984-04-23", "1984-10-01", 
-                   "1985-03-02", "1985-07-25", "1985-10-02", "1986-02-01", 
-                   "1986-08-14")),  # Add the key event dates
-  event = c("Term 'AIDS' Introduced", "CDC AIDS Guidelines", "HHS HIV/AIDS", 
-            "First HIV Blood Test", "First HIV Test Approved", "Rock Hudson's Diagnosis", 
-            "HIV Transmission Routes", "'HIV' Renamed", "AZT Approved"),  # Shorter descriptions
-  y = c(-25, -25, -25, -25, -25, -25, -25, -25, -25)  # Set y position for text labels
-)
-
-# Adding the annotations to the plot
-time_series_plot <- time_series_plot +
-  geom_vline(data = key_events, aes(xintercept = date), linetype = "dashed", alpha = 0.5) +  # Vertical dashed lines
-  geom_text(data = key_events, aes(x = date, y = y, label = event), 
-            size = 3, angle = 90, vjust = -0.5, hjust = 0, inherit.aes = FALSE)  # Event labels
-
-# Print the plot to the R console
-print(time_series_plot)
-
-# Save the plot to a PNG file
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_time_series_sentiment_line_graph.png")
-ggsave(output_file_path, plot = time_series_plot, width = 10, height = 6, dpi = 300)
-```
-
-# Author Impact Hypothesis
-```{r LDA Model for Influential Authors}
-# Prepare the corpus for influential authors
-influential_corpus <- Corpus(VectorSource(top_authors_comments$Full.Text))
-influential_corpus <- tm_map(influential_corpus, content_transformer(tolower))
-influential_corpus <- tm_map(influential_corpus, removePunctuation)
-influential_corpus <- tm_map(influential_corpus, removeNumbers)
-influential_corpus <- tm_map(influential_corpus, removeWords, stopwords("english"))
-influential_corpus <- tm_map(influential_corpus, stripWhitespace)
-
-# Create DTM for influential authors
-influential_dtm <- DocumentTermMatrix(influential_corpus)
-influential_dtm <- removeSparseTerms(influential_dtm, 0.90)
-```
-
-```{r How Many Topics, eval=FALSE, include=FALSE}
-# Optimize LDA to find the best number of topics
-set.seed(123)
-result <- FindTopicsNumber(
-  influential_dtm,
-  topics = seq(from = 2, to = 10, by = 1),  # Narrow topic range for faster computation
-  metrics = c("Griffiths2004", "Deveaud2014", "CaoJuan2009", "Arun2010"),  # Use fewer metrics
-  method = "Gibbs",
-  control = list(seed = 123, iter = 200),  # Fewer iterations for quicker results
-  mc.cores = 2L,
-  verbose = TRUE
-)
-
-# Plot results to determine the optimal number of topics
-FindTopicsNumber_plot(result)
-```
-
-Six Topics!
-
-```{r LDA Model and Top Terms}
-# LDA for influential authors
-set.seed(123)
-influential_lda <- LDA(influential_dtm, k = 6, control = list(seed = 123))
-
-# Load required libraries
-library(tidyr)
-library(dplyr)
-library(sjPlot)
-
-# Visualize the top terms for each topic (concise visualization)
-influential_topics <- tidy(influential_lda, matrix = "beta") %>%
-  group_by(topic) %>%
-  top_n(20, beta) %>%
-  ungroup() %>%
-  arrange(topic, -beta)
-
-# Round beta values to 3 decimal places
-influential_topics <- influential_topics %>%
-  mutate(beta = round(beta, 3))
-
-# Reshape the data frame to have each topic's terms and betas side by side
-reshaped_df <- influential_topics %>%
-  group_by(topic) %>%
-  mutate(term_id = row_number()) %>%
-  ungroup() %>%
-  pivot_wider(
-    names_from = topic,
-    values_from = c(term, beta),
-    names_glue = "Topic_{topic}_{.value}"
-  )
-
-reshaped_df <- reshaped_df %>%
-  select(term_id, 
-         starts_with("Topic_1_term"), starts_with("Topic_1_beta"),
-         starts_with("Topic_2_term"), starts_with("Topic_2_beta"),
-         starts_with("Topic_3_term"), starts_with("Topic_3_beta"),
-         starts_with("Topic_4_term"), starts_with("Topic_4_beta"),
-         starts_with("Topic_5_term"), starts_with("Topic_5_beta"),
-         starts_with("Topic_6_term"), starts_with("Topic_6_beta"))
-
-library(dplyr)
-library(gt)
-
-# Create the gt table
-gt_table <- reshaped_df %>%
-  gt() %>%
-  tab_spanner(label = "Topic 1", columns = c("Topic_1_term", "Topic_1_beta")) %>%
-  tab_spanner(label = "Topic 2", columns = c("Topic_2_term", "Topic_2_beta")) %>%
-  tab_spanner(label = "Topic 3", columns = c("Topic_3_term", "Topic_3_beta")) %>%
-  tab_spanner(label = "Topic 4", columns = c("Topic_4_term", "Topic_4_beta")) %>%
-  tab_spanner(label = "Topic 5", columns = c("Topic_5_term", "Topic_5_beta")) %>%
-  tab_spanner(label = "Topic 6", columns = c("Topic_6_term", "Topic_6_beta")) %>%
-  cols_label(
-    term_id = "Term No.",
-    Topic_1_term = "term", Topic_1_beta = "beta", 
-    Topic_2_term = "term", Topic_2_beta = "beta",
-    Topic_3_term = "term", Topic_3_beta = "beta", 
-    Topic_4_term = "term", Topic_4_beta = "beta",
-    Topic_5_term = "term", Topic_5_beta = "beta", 
-    Topic_6_term = "term", Topic_6_beta = "beta")
-
-gt_table
-
-# Save the gt table to an HTML file
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_top_terms_and_betas_(influential_authors).html")
-gtsave(gt_table, output_file_path)
-```
-
-```{r Topic Matching}
-# Extract top terms from the overall LDA model (assuming it's stored in 'lda_model')
-overall_topics <- tidy(lda_model, matrix = "beta") %>%
-  group_by(topic) %>%
-  top_n(20, beta) %>%
-  ungroup() %>%
-  arrange(topic, -beta)
-
-# Function to calculate Jaccard similarity
-jaccard_similarity <- function(set1, set2) {
-  intersection <- length(intersect(set1, set2))
-  union <- length(union(set1, set2))
-  return(intersection / union)
-}
-
-# Compare topics
-topic_similarities <- data.frame(
-  Influential_Topic = numeric(),
-  Overall_Topic = numeric(),
-  Similarity = numeric()
-)
-
-for (i in 1:6) {
-  influential_terms <- influential_topics %>% filter(topic == i) %>% pull(term)
-  for (j in 1:6) {
-    overall_terms <- overall_topics %>% filter(topic == j) %>% pull(term)
-    similarity <- jaccard_similarity(influential_terms, overall_terms)
-    topic_similarities <- rbind(topic_similarities, data.frame(
-      Influential_Topic = i,
-      Overall_Topic = j,
-      Similarity = similarity
-    ))
-  }
-}
-
-# Find the best matching topics
-best_matches <- topic_similarities %>%
-  group_by(Influential_Topic) %>%
-  slice_max(order_by = Similarity, n = 1)
-
-print(best_matches)
-
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "table_topic_matches.html")
-
-tab_df(best_matches, ,
-  file = output_file_path)
-
-# Transpose the 'best_matches' dataframe
-transposed_best_matches <- as.data.frame(t(best_matches))
-
-# Display the transposed table
-print(transposed_best_matches)
-
-output_file_path_transposed <- file.path(output_directory, "Images and Tables/Images", "table_topic_matches_transposed.html")
-tab_df(transposed_best_matches,
-  file = output_file_path_transposed)
-```
-
-```{r Similarity Plot}
-library(ggplot2)
-
-# Create the bar chart and annotate with similarity values
-similarity_plot <- ggplot(best_matches, aes(x = factor(Influential_Topic), y = Similarity, fill = factor(Overall_Topic))) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = round(Similarity, 2)), 
-            position = position_stack(vjust = 0.5), size = 3) + # Add similarity score annotations
-  labs(title = "Similarity Between Influential Authors' Topics and Overall Topics",
-       x = "Influential Authors' Topic",
-       y = "Jaccard Similarity",
-       fill = "Best Matching Overall Topic") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-similarity_plot
-
-ggsave(file.path(output_directory, "Images and Tables/Images", "plot_topic_influence_comparison_bar_graph.png"), 
-       width = 10, height = 6, dpi = 300)
-```
+```{python Relevancy Filtering}
+def create_relevancy_quartiles(all_threads):
+    # Calculate min and max values
+    min_value = all_threads['Thread_Relevancy'].min()
+    max_value = all_threads['Thread_Relevancy'].max()
     
-
-```{r Topic Prevelance over Time Plot}
-library(tidyverse)
-library(lubridate)
-library(ggplot2)
-library(scales)
-library(topicmodels)
-
-# Function to get topic distributions for a set of documents
-get_topic_distribution <- function(lda_model, dtm) {
-  topic_dist <- posterior(lda_model)$topics
-  colnames(topic_dist) <- paste0("Topic_", 1:ncol(topic_dist))
-  cbind(data.frame(Document = rownames(dtm)), as.data.frame(topic_dist))
-}
-
-# Get topic distributions for all documents and influential authors' documents
-all_topic_dist <- get_topic_distribution(lda_model, dtm)
-influential_topic_dist <- get_topic_distribution(influential_lda, influential_dtm)
-
-# Add date and author information
-all_topic_dist$Date <- filtered_comments$Date[match(all_topic_dist$Document, rownames(dtm))]
-all_topic_dist$Influential <- FALSE
-
-influential_topic_dist$Date <- top_authors_comments$Date[match(influential_topic_dist$Document, rownames(influential_dtm))]
-influential_topic_dist$Influential <- TRUE
-
-# Combine datasets
-combined_topic_dist <- rbind(all_topic_dist, influential_topic_dist)
-
-# Calculate monthly topic prevalence
-monthly_topic_prevalence <- combined_topic_dist %>%
-  mutate(Month = floor_date(Date, "month")) %>%
-  group_by(Month, Influential) %>%
-  summarise(across(starts_with("Topic_"), mean)) %>%
-  pivot_longer(cols = starts_with("Topic_"), names_to = "Topic", values_to = "Prevalence")
-
-# Create a custom labeler for facet labels
-facet_labels <- c(`FALSE` = "All Authors", `TRUE` = "Influential Authors")
-
-# Create the line plot for topic prevalence over time with better scaling
-line_plot <- ggplot(monthly_topic_prevalence, aes(x = Month, y = Prevalence, color = Topic, group = Topic)) +
-  geom_line(size = 1.5) +  # Increase line size for better visibility
-  facet_wrap(~Influential, scales = "free_y", ncol = 1, labeller = labeller(Influential = facet_labels)) +  # Use labeller to rename facets
-  scale_color_brewer(palette = "Dark2") +  # Use a palette with more distinct colors
-  labs(title = "Topic Prevalence Over Time: Influential Authors vs Overall Discussion",
-       x = "Date",
-       y = "Topic Prevalence",
-       color = "Topic") +
-  theme_bw() +
-  theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 45, hjust = 1)) +  # Rotate x-axis labels for better readability
-  scale_x_date(date_breaks = "6 months", date_labels = "%b %Y") +
-  scale_y_continuous(labels = scales::percent_format(), limits = c(0.155, 0.1825))  # Zoom in on relevant y-axis range
-
-# Print the plot
-print(line_plot)
-
-# Save the plot with a higher DPI for better clarity
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_topic_prevalence_line_graph.png")
-ggsave(output_file_path, plot = line_plot, width = 12, height = 8, dpi = 300)
-```
-
-```{r Distribution of Comments per Newsgroup Plot}
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
-
-# Calculate the total number of comments per author across all newsgroups
-total_comments_by_author <- filtered_comments %>%
-  group_by(Author) %>%
-  summarise(Total_Comments = n())
-
-# Calculate the number of comments per author per newsgroup
-top_authors_by_newsgroup <- filtered_comments %>%
-  group_by(Author, newsgroup) %>%
-  summarise(Number_of_Comments = n())
-
-# Join the total comments data to the newsgroup data
-top_authors_by_newsgroup <- top_authors_by_newsgroup %>%
-  left_join(total_comments_by_author, by = "Author")
-
-# Select the top 15 most active authors by total number of comments
-top_15_authors <- total_comments_by_author %>%
-  arrange(desc(Total_Comments)) %>%
-  slice(1:15)  # Ensure only the top 25 authors are selected
-
-# Filter the main data to include only the top 25 authors
-top_15_data <- top_authors_by_newsgroup %>%
-  filter(Author %in% top_15_authors$Author)
-
-# Create the bar plot using ggplot2 and sort authors in descending order by total number of comments
-bar_plot <- ggplot(top_15_data, aes(x = Number_of_Comments, y = reorder(Author, Total_Comments), fill = newsgroup)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Top 15 Most Active Users in Dataset Three by Newsgroup",
-       x = "Number of Comments",
-       y = "Author",
-       fill = "Newsgroup") +
-  theme_bw() +
-  theme(legend.position = "right",
-        axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Print the plot
-print(bar_plot)
-
-# Save the plot to a file
-output_file_path <- file.path(output_directory, "Images and Tables/Images/plot_top_15_most_active_users_by_newsgroup.png")
-ggsave(output_file_path, plot = bar_plot, width = 10, height = 6, dpi = 300)
-```
-```{r Thematic evolution}
-library(tidytext)
-library(tidyverse)
-
-# Identify top keywords for influential authors
-influential_keywords <- top_authors_comments %>%
-  unnest_tokens(word, Full.Text) %>%
-  anti_join(stop_words) %>%
-  count(Author, word, sort = TRUE) %>%
-  group_by(Author) %>%
-  top_n(5, n) %>%
-  ungroup()
-
-# Get the top 20 keywords across all influential authors
-top_keywords <- influential_keywords %>%
-  group_by(word) %>%
-  summarise(total = sum(n)) %>%
-  top_n(20, total) %>%
-  pull(word)
-
-# Function to calculate keyword prevalence
-calculate_keyword_prevalence <- function(df, keywords) {
-  df %>%
-    unnest_tokens(word, Full.Text) %>%
-    filter(word %in% keywords) %>%
-    count(Date = floor_date(Date, "month"), word) %>%
-    complete(Date, word, fill = list(n = 0)) %>%
-    group_by(Date) %>%
-    mutate(prevalence = n / sum(n)) %>%
-    ungroup()
-}
-
-# Calculate keyword prevalence for influential authors and overall discussions
-influential_prevalence <- calculate_keyword_prevalence(top_authors_comments, top_keywords)
-overall_prevalence <- calculate_keyword_prevalence(filtered_comments, top_keywords)
-
-# Combine the data
-combined_prevalence <- bind_rows(
-  influential_prevalence %>% mutate(group = "Influential Authors"),
-  overall_prevalence %>% mutate(group = "Overall Discussion")
-)
-
-# Create the plot
-keyword_adoption_plot <- ggplot(combined_prevalence, aes(x = Date, y = prevalence, color = group)) +
-  geom_line() +
-  facet_wrap(~word, scales = "free_y", ncol = 4) +
-  labs(title = "Keyword Adoption Over Time: Influential Authors vs Overall Discussion",
-       x = "Date",
-       y = "Keyword Prevalence",
-       color = "Group") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "bottom")
-
-# Print the plot
-print(keyword_adoption_plot)
-
-# Save the plot
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_keyword_adoption_over_time.png")
-ggsave(output_file_path, plot = keyword_adoption_plot, width = 16, height = 10, dpi = 300)
-```
-
-```{r Influence Propogation}
-library(igraph)
-library(ggraph)
-library(tidygraph)
-library(dplyr)
-
-# Identify influential authors' threads
-influential_threads <- filtered_comments %>%
-  filter(Author %in% top_influential_authors$Author) %>%
-  select(Thread.ID) %>%
-  distinct()
-
-# Create edges based on who commented after influential authors
-edges <- filtered_comments %>%
-  inner_join(influential_threads, by = "Thread.ID") %>%
-  arrange(Thread.ID, Date) %>%
-  group_by(Thread.ID) %>%
-  mutate(PreviousAuthor = lag(Author)) %>%
-  ungroup() %>%
-  filter(!is.na(PreviousAuthor), 
-         Author != PreviousAuthor,
-         PreviousAuthor %in% top_influential_authors$Author) %>%
-  select(from = PreviousAuthor, to = Author) %>%
-  group_by(from, to) %>%
-  summarise(weight = n(), .groups = "drop") %>%
-  # Filter for stronger connections
-  filter(weight > quantile(weight, 0.25))
-
-# Create graph
-graph <- graph_from_data_frame(edges, directed = TRUE)
-
-# Calculate node sizes based on in-degree
-node_sizes <- degree(graph, mode = "in")
-
-# Identify top 10 influential nodes
-top_nodes <- names(sort(node_sizes, decreasing = TRUE)[1:10])
-
-# Create layout
-layout <- create_layout(graph, layout = "fr")
-
-# Create plot
-influence_plot <- ggraph(layout) + 
-  geom_edge_link(aes(width = weight), alpha = 0.2, arrow = arrow(length = unit(2, 'mm')), end_cap = circle(3, 'mm')) +
-  geom_node_point(aes(size = node_sizes, color = name %in% top_influential_authors$Author)) +
-  geom_node_text(aes(label = ifelse(name %in% top_nodes, name, "")), repel = TRUE, size = 3) +
-  scale_edge_width(range = c(0.1, 2)) +
-  scale_size(range = c(1, 10)) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "lightblue")) +
-  theme_minimal() +
-  theme(legend.position = "none") 
-
-# Print the plot
-print(influence_plot)
-
-# Save the plot
-output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_influence_propagation_network_improved.png")
-ggsave(output_file_path, plot = influence_plot, width = 20, height = 16, dpi = 300)
-```
-# For Webpage
-
-```{r Interactive Co-Occurance Network of Top Terms, eval=TRUE}
-# Load necessary libraries
-library(visNetwork)
-library(igraph)
-
-library(visNetwork)
-library(igraph)
-
-# Create an igraph object from the filtered co-occurrence matrix
-graph_3d <- graph_from_adjacency_matrix(filtered_co_occurrence, weighted = TRUE, mode = "undirected", diag = FALSE)
-
-# Simplify the graph to avoid self-loops and redundant edges
-graph_3d <- simplify(graph_3d)
-
-# Prepare colors based on topic assignment
-topic_colors <- RColorBrewer::brewer.pal(6, "Set1")[term_topic_df$topic]
-
-# Prepare data for visNetwork
-nodes <- data.frame(
-  id = V(graph_3d)$name,
-  label = V(graph_3d)$name,  # Labels are always visible
-  group = term_topic_df$topic,  # Group nodes by topic
-  value = log1p(term_frequency[filtered_terms]) * 8,  # Increase node size scaling for visibility
-  title = paste("<p><b>Node:</b>", V(graph_3d)$name, "<br><b>Frequency:</b>", term_frequency[filtered_terms], "</p>")  # Custom hover popups
-)
-
-# Sort nodes alphabetically by label
-nodes <- nodes[order(nodes$label), ]
-
-edges <- data.frame(
-  from = as.character(ends(graph_3d, E(graph_3d))[, 1]),
-  to = as.character(ends(graph_3d, E(graph_3d))[, 2]),
-  value = E(graph_3d)$weight / max(E(graph_3d)$weight) * 1,  # Scale edge width for visibility
-  label = round(E(graph_3d)$weight, 2)  # Add edge labels
-)
-
-network_vis <- visNetwork(nodes, edges, width = "100%", height = "90vh") %>%
-  visNodes(
-    shape = "dot",
-    scaling = list(min = 5, max = 30),
-    font = list(size = 35),
-    color = list(
-      background = topic_colors,
-      border = "black",
-      highlight = "red"
-    ),
-    title = nodes$title
-  ) %>%
-  visEdges(
-    width = ~value,
-    color = list(color = 'gray', highlight = 'red'),
-    smooth = list(enabled = TRUE, type = "continuous", roundness = 1)
-  ) %>%
-  visOptions(
-    highlightNearest = list(enabled = TRUE, hover = TRUE),
-    nodesIdSelection = list(enabled = TRUE, useLabels = TRUE, main = "Select by term"),  # Changed label for node selection
-    selectedBy = list(variable = "group", sort = TRUE, main = "Select by topic")  # Changed label for group selection
-  ) %>%
-  visPhysics(
-    stabilization = FALSE,
-    solver = "barnesHut",
-    barnesHut = list(
-      gravitationalConstant = -30000,  # Increase negative value for stronger repulsion
-      springLength = 500,              # Increase spring length to spread nodes apart
-      springConstant = 0.01            # Decrease spring constant for more flexible edges
+    # Create breaks for quartiles
+    breaks = np.linspace(min_value, max_value, 5)
+    
+    # Create quartile labels
+    all_threads['Quartile'] = pd.cut(
+        all_threads['Thread_Relevancy'],
+        bins=breaks,
+        labels=['Q1', 'Q2', 'Q3', 'Q4'],
+        include_lowest=True
     )
-  ) %>%
-  visInteraction(
-    dragNodes = TRUE,
-    dragView = TRUE,
-    zoomView = TRUE,
-    navigationButtons = TRUE,  # Adds navigation buttons
-    keyboard = TRUE
-  ) %>%
-  visLayout(
-    improvedLayout = TRUE
-  )
+    
+    return all_threads
 
-# Save the network graph to an HTML file with full width and height
-network_graph_path <- file.path(output_directory, "Images and Tables/Images/new web visualizations/interactive_plot_3d_cooccurrence_network.html")
-visSave(network_vis, file = network_graph_path)
+def plot_quartile_frequencies(df, title="Frequency of Thread Relevancy Quartiles"):
+    plt.figure(figsize=(10, 6))
+    counts = df['Quartile'].value_counts().sort_index()
+    
+    bars = plt.bar(counts.index, counts.values, color='skyblue', edgecolor='black')
+    
+    # Add value labels above bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{int(height)}',
+                ha='center', va='bottom')
+    
+    plt.title(title)
+    plt.xlabel("Quartile")
+    plt.ylabel("Frequency")
+    plt.grid(True, alpha=0.3)
+    plt.show()
 
-# Custom title and legend creation in HTML
-title_html <- '
-<div style="position: absolute; top: 40px; left: 50%; transform: translateX(-50%); font-size: 24px; font-weight: bold; font-family: Arial, sans-serif;">
-  Interactive Co-Occurrence Network of Top Terms
-</div>
-'
+def plot_relevancy_histogram(df, bin_width=0.5):
+    plt.figure(figsize=(10, 6))
+    
+    # Create histogram
+    plt.hist(df['Thread_Relevancy'], bins=np.arange(min(df['Thread_Relevancy']), 
+            max(df['Thread_Relevancy']) + bin_width, bin_width),
+            color='skyblue', edgecolor='black', alpha=0.7)
+    
+    # Add density curve
+    density = sns.kdeplot(data=df['Thread_Relevancy'], 
+                         color='orange', 
+                         alpha=0.4,
+                         fill=True)
+    
+    plt.title("Histogram and Density of Thread Relevancy Scores")
+    plt.xlabel("Relevancy")
+    plt.ylabel("Number of Threads")
+    plt.grid(True, alpha=0.3)
+    plt.show()
 
-legend_html <-'
-<div style="position: absolute; top: 40px; right: 40px; background-color: #f0f0f0; border: 1px solid #666; padding: 7px; text-padding: 7px; border-radius: 5px; font-family: Arial, sans-serif;">
-  <span style="color: #94df5c;">●</span> Topic 1
-  <span style="color: #ffff54;">●</span> Topic 2
-  <span style="color: #eb8584;">●</span> Topic 3<br>
-  <span style="color: #a787de;">●</span> Topic 4
-  <span style="color: #dd82ee;">●</span> Topic 5
-  <span style="color: #9fc0f7;">●</span> Topic 6
-</div>
-'
+# Load your data (uncomment and modify paths as needed)
+# all_threads = pd.read_csv('path_to_your_threads_file.csv')
+# all_comments = pd.read_csv('path_to_your_comments_file.csv')
 
-# Inject the custom title and legend into the HTML file
-html_content <- readLines(network_graph_path)
-html_content <- c(title_html, html_content, legend_html)
-writeLines(html_content, network_graph_path)
+# Ensure column names match exactly
+all_threads_renamed = all_threads.rename(columns={
+    'Thread.Relevancy': 'Thread_Relevancy'
+})
+
+# Create filtered_threads by removing Q1 and requiring more than 1 message
+all_threads_renamed = create_relevancy_quartiles(all_threads_renamed)
+
+filtered_threads = all_threads_renamed[
+    (all_threads_renamed['Quartile'] != 'Q1') & 
+    (all_threads_renamed['Number.of.Messages'] > 1)
+].copy()
+
+# Create filtered_comments by keeping only comments from the filtered threads
+filtered_comments = all_comments[
+    all_comments['Thread.ID'].isin(filtered_threads['Unique_ThreadID'])
+].copy()
+
+# Optional: Save the filtered datasets to CSV files
+filtered_threads.to_csv('filtered_threads.csv', index=False)
+filtered_comments.to_csv('filtered_comments.csv', index=False)
+
+# Display the counts of filtered data
+print(f"\nNumber of threads after filtering: {len(filtered_threads)}")
+print(f"Number of comments after filtering: {len(filtered_comments)}")
+
+# Display information about the datasets
+print("\nFiltered Threads Info:")
+print(filtered_threads.info())
+print("\nFirst few rows of filtered_threads:")
+print(filtered_threads.head())
+
+print("\nFiltered Comments Info:")
+print(filtered_comments.info())
+print("\nFirst few rows of filtered_comments:")
+print(filtered_comments.head())
+
+# Display the distribution of messages in filtered threads
+print("\nSummary of Number.of.Messages in filtered threads:")
+print(filtered_threads['Number.of.Messages'].describe())
+```
+## Cool Initial Visualizations
+```{python}
+
+```
+
+## Theme Prevelance Hypothesis
+```{python LDA Topic Model + Betas, 6 Topics}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import re
+import nltk
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+import networkx as nx
+
+# Define the Images and Tables directory
+IT_directory = "/Users/emerson/Github/usenet_webpage/Images and Tables/"
+images_dir = os.path.join(IT_directory, "Images")
+tables_dir = os.path.join(IT_directory, "Tables")
+
+# Create directories if they don't exist
+os.makedirs(images_dir, exist_ok=True)
+os.makedirs(tables_dir, exist_ok=True)
+
+# Download required NLTK data
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt', quiet=True)
+
+def preprocess_text(text):
+    """Preprocess text data"""
+    # Convert to lowercase
+    text = str(text).lower()
+    # Remove special characters and numbers
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    text = ' '.join([word for word in text.split() if word not in stop_words])
+    return text
+
+def create_styled_html(results_df):
+    """Create a styled HTML table from the results DataFrame"""
+    # Create a copy of the DataFrame for styling
+    styled_df = results_df.copy()
+    
+    # Define CSS styles
+    styles = [
+        dict(selector="caption", 
+             props=[("caption-side", "top"),
+                   ("font-size", "16px"),
+                   ("font-weight", "bold"),
+                   ("text-align", "center"),
+                   ("padding", "10px")]),
+        dict(selector="th", 
+             props=[("font-size", "14px"),
+                   ("text-align", "center"),
+                   ("background-color", "#f0f0f0"),
+                   ("padding", "8px")]),
+        dict(selector="td", 
+             props=[("padding", "8px"),
+                   ("text-align", "left")]),
+        dict(selector="tr:nth-child(even)",
+             props=[("background-color", "#f9f9f9")]),
+        dict(selector="table",
+             props=[("border-collapse", "collapse"),
+                   ("width", "100%"),
+                   ("margin", "20px 0"),
+                   ("font-family", "Arial, sans-serif")]),
+        dict(selector="", 
+             props=[("border", "1px solid #ddd")])
+    ]
+    
+    # Apply styling
+    styled_table = (styled_df.style
+                   .set_table_styles(styles)
+                   .set_caption("LDA Topic Analysis Results")
+                   .format(precision=4)
+                   .background_gradient(subset=[col for col in styled_df.columns if 'betas' in col],
+                                     cmap='Blues')
+                   .hide(axis='index'))
+    
+    # Add custom CSS for alternating topic columns
+    for i in range(1, 7):
+        styled_table = styled_table.set_properties(**{
+            f'Topic_{i}_terms': {
+                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
+                'border-right': '2px solid #ddd'
+            },
+            f'Topic_{i}_betas': {
+                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
+                'border-right': '2px solid #ddd'
+            }
+        })
+    
+    return styled_table
+
+def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
+    """Perform topic analysis on the comments"""
+    print("Starting topic analysis...")
+    
+    # Preprocess texts
+    texts = [preprocess_text(text) for text in filtered_comments['Full.Text']]
+    
+    # Create document-term matrix
+    print("Creating document-term matrix...")
+    vectorizer = CountVectorizer(max_df=0.95, min_df=2)
+    doc_term_matrix = vectorizer.fit_transform(texts)
+    
+    # Train LDA model
+    print("Training LDA model...")
+    lda = LatentDirichletAllocation(
+        n_components=n_topics,
+        random_state=123,
+        max_iter=20
+    )
+    lda.fit(doc_term_matrix)
+    
+    # Get feature names
+    feature_names = vectorizer.get_feature_names_out()
+    
+    # Create top terms dataframe
+    print("Extracting top terms...")
+    top_terms_dict = {}
+    
+    for topic_idx, topic in enumerate(lda.components_):
+        top_indices = topic.argsort()[:-n_top_words-1:-1]
+        top_terms = [feature_names[i] for i in top_indices]
+        top_betas = [topic[i] for i in top_indices]
+        
+        top_terms_dict[f'Topic_{topic_idx+1}_terms'] = top_terms
+        top_terms_dict[f'Topic_{topic_idx+1}_betas'] = [round(beta, 4) for beta in top_betas]
+    
+    # Create DataFrame
+    results_df = pd.DataFrame(top_terms_dict)
+    
+    # Save table to Tables directory
+    tables_path = os.path.join(tables_dir, "general_topics_lda_analysis.html")
+    
+    # Create HTML content
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 20px 0;
+                font-family: Arial, sans-serif;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f5f5f5;
+            }}
+            tr:nth-child(even) {{
+                background-color: #f9f9f9;
+            }}
+            caption {{
+                font-size: 1.2em;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body>
+        <table>
+            <caption>General LDA Topic Analysis Results</caption>
+            {results_df.to_html(index=False)}
+        </table>
+    </body>
+    </html>
+    """
+    
+    with open(tables_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    # Create visualization
+    print("Creating visualization...")
+    plt.figure(figsize=(15, 10))
+    for topic_idx in range(n_topics):
+        plt.subplot(2, 3, topic_idx + 1)
+        top_terms = top_terms_dict[f'Topic_{topic_idx+1}_terms'][:10]
+        top_betas = top_terms_dict[f'Topic_{topic_idx+1}_betas'][:10]
+        plt.barh(range(len(top_terms)), top_betas)
+        plt.yticks(range(len(top_terms)), top_terms)
+        plt.title(f'Topic {topic_idx + 1}')
+    
+    plt.tight_layout()
+    
+    # Save plot to Images directory
+    plot_path = os.path.join(images_dir, "general_topics_visualization.png")
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    print("Analysis complete! Results saved to:")
+    print(f"- Table: {tables_path}")
+    print(f"- Plot: {plot_path}")
+    
+    return results_df, lda, vectorizer, doc_term_matrix
+
+# Run the analysis
+try:
+    print("\nStarting topic analysis...")
+    results_df, lda_model, vectorizer, doc_term_matrix = analyze_topics(filtered_comments)
+    print("\nAnalysis completed successfully!")
+    
+    # Display top terms for each topic
+    print("\nTop terms for each topic:")
+    print(results_df.head())
+    
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+    raise
+```
+
+```{python co-occurance network}
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.patches import Polygon
+from scipy.spatial import ConvexHull
+
+def create_static_network(doc_term_matrix, lda_model, vectorizer, output_path='topic_network_visualization.png'):
+    """Create static co-occurrence network visualization with topic regions"""
+    print("Creating static co-occurrence network...")
+    
+    # Get the document-term matrix as array
+    dtm_array = doc_term_matrix.toarray()
+    co_occurrence = np.dot(dtm_array.T, dtm_array)
+    
+    # Create binary DTM
+    binary_dtm = (dtm_array > 0).astype(int)
+    term_frequency = np.sum(binary_dtm, axis=0)
+    
+    # Filter for terms that appear in the top terms from LDA results
+    top_terms = []
+    for i in range(6):
+        col_name = f'Topic_{i+1}_terms'
+        top_terms.extend(results_df[col_name].head(15).tolist())  # Limit to top 15 terms per topic
+    top_terms = list(set(top_terms))
+    
+    # Get indices of these terms
+    feature_names = vectorizer.get_feature_names_out()
+    filtered_terms = [i for i, term in enumerate(feature_names) if term in top_terms]
+    filtered_co_occurrence = co_occurrence[filtered_terms][:, filtered_terms]
+    terms = feature_names[filtered_terms]
+    
+    # Create networkx graph
+    G = nx.Graph()
+    
+    # Add edges with weights
+    for i in range(len(terms)):
+        for j in range(i + 1, len(terms)):
+            if filtered_co_occurrence[i, j] > 0:
+                G.add_edge(terms[i], terms[j], weight=filtered_co_occurrence[i, j])
+    
+    # Get topic assignments for terms
+    term_topic_assignment = []
+    for term in terms:
+        term_topics = []
+        for i in range(6):
+            terms_col = f'Topic_{i+1}_terms'
+            betas_col = f'Topic_{i+1}_betas'
+            if term in results_df[terms_col].values:
+                idx = results_df[terms_col][results_df[terms_col] == term].index[0]
+                term_topics.append((i, results_df[betas_col].iloc[idx]))
+        if term_topics:
+            term_topic_assignment.append(max(term_topics, key=lambda x: x[1])[0])
+        else:
+            term_topic_assignment.append(0)
+    
+    # Set up the plot with white background
+    plt.figure(figsize=(20, 20), facecolor='white')
+    
+    # Create layout with more spacing
+    pos = nx.spring_layout(G, k=4, iterations=100, seed=42)
+    
+    # Convert pos dict to numpy arrays for each topic
+    topic_positions = {i: [] for i in range(6)}
+    for node, position in pos.items():
+        idx = list(terms).index(node)
+        topic = term_topic_assignment[idx]
+        topic_positions[topic].append(position)
+    
+    # Draw topic regions
+    colors = sns.color_palette("Set2", n_colors=6)
+    alpha_fill = 0.2
+    alpha_edge = 0.5
+    
+    # Draw convex hulls for each topic
+    for topic in range(6):
+        if len(topic_positions[topic]) > 2:  # Need at least 3 points for convex hull
+            points = np.array(topic_positions[topic])
+            hull = ConvexHull(points)
+            hull_points = points[hull.vertices]
+            plt.fill(hull_points[:, 0], hull_points[:, 1], 
+                    alpha=alpha_fill, color=colors[topic])
+            plt.plot(hull_points[:, 0], hull_points[:, 1], 
+                    color=colors[topic], alpha=alpha_edge)
+    
+    # Draw edges
+    edge_weights = [G[u][v]['weight'] for u, v in G.edges()]
+    max_edge_weight = max(edge_weights) if edge_weights else 1
+    edge_widths = [0.3 + (w / max_edge_weight) for w in edge_weights]
+    nx.draw_networkx_edges(G, pos, alpha=0.1, width=edge_widths, edge_color='gray')
+    
+    # Draw nodes
+    node_sizes = [np.log1p(term_frequency[filtered_terms][i]) * 500 for i in range(len(terms))]
+    for topic in range(6):
+        # Get nodes for this topic
+        topic_nodes = [node for node, idx in enumerate(term_topic_assignment) if idx == topic]
+        if topic_nodes:
+            nx.draw_networkx_nodes(G, pos, 
+                                 nodelist=[terms[i] for i in topic_nodes],
+                                 node_color=[colors[topic]],
+                                 node_size=[node_sizes[i] for i in topic_nodes],
+                                 alpha=0.7)
+    
+    # Add labels with better spacing and formatting
+    labels = {node: node for node in G.nodes()}
+    nx.draw_networkx_labels(G, pos, labels,
+                          font_size=10,
+                          font_weight='bold',
+                          bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=0.5))
+    
+    # Add legend
+    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', 
+                                label=f'Topic {i+1}',
+                                markerfacecolor=colors[i], markersize=15)
+                      for i in range(6)]
+    plt.legend(handles=legend_elements, loc='upper right',
+              title='Topics', title_fontsize=12, fontsize=10)
+    
+    # Remove axes
+    plt.axis('on')
+    
+    # Save with high quality
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    
+    return G
+
+# Create the visualization using existing data
+try:
+    print("\nCreating static network visualization...")
+    G = create_static_network(
+        doc_term_matrix=doc_term_matrix,
+        lda_model=lda_model,
+        vectorizer=vectorizer,
+        output_path='topic_network_visualization.png'
+    )
+    
+    print("\nNetwork visualization completed successfully!")
+    print("Check 'topic_network_visualization.png' for the static network visualization.")
+    
+except Exception as e:
+    print(f"An error occurred while creating the network: {str(e)}")
+```
+
+## Emotional Tone Hypothesis
+```{python}
+usenet_threads_all = pd.read_csv(os.path.join(threads_directory, "combined_threads_cleaned_82TO86.csv"))
+usenet_comments_all = pd.read_csv(os.path.join(comments_directory, "combined_comments_cleaned_82TO86.csv"))
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import networkx as nx
+from datetime import datetime
+from itertools import combinations
+
+def create_author_network(filtered_comments):
+    """Create a network of authors based on thread co-participation"""
+    print("Creating author network...")
+    
+    edges = []
+    weights = {}
+    
+    # Group comments by Thread ID
+    thread_groups = filtered_comments.groupby('Thread.ID')
+    
+    # Create edges for each thread
+    for thread_id, group in thread_groups:
+        if thread_id and len(group) > 1:
+            authors = group['Author'].unique()
+            
+            for source, target in combinations(authors, 2):
+                if source != target:
+                    edge = tuple(sorted([source, target]))
+                    
+                    if edge in weights:
+                        weights[edge] += 1
+                    else:
+                        weights[edge] = 1
+                        edges.append({'source': edge[0], 'target': edge[1]})
+    
+    edge_df = pd.DataFrame(edges)
+    if not edges:  # Check if edges list is empty
+        print("Warning: No edges created. Check if there are multiple authors per thread.")
+        return pd.DataFrame(columns=['source', 'target', 'weight'])
+        
+    edge_df['weight'] = edge_df.apply(lambda row: weights[tuple(sorted([row['source'], row['target']]))], axis=1)
+    
+    print(f"Created network with {len(edge_df)} edges")
+    return edge_df
+
+def identify_influential_authors(edge_df, n_authors=15):
+    """Identify the most influential authors based on network metrics"""
+    print("Identifying influential authors...")
+    
+    if edge_df.empty:
+        print("Warning: Empty edge dataframe. Cannot identify influential authors.")
+        return pd.DataFrame(columns=['Author', 'Influence'])
+        
+    G = nx.from_pandas_edgelist(edge_df, 'source', 'target', 'weight')
+    degree_dict = dict(G.degree(weight='weight'))
+    
+    author_influence = pd.DataFrame({
+        'Author': list(degree_dict.keys()),
+        'Influence': list(degree_dict.values())
+    })
+    
+    top_influential_authors = author_influence.sort_values(
+        'Influence', ascending=False
+    ).head(n_authors).reset_index(drop=True)
+    
+    print("\nTop influential authors identified:")
+    print(top_influential_authors)
+    return top_influential_authors
+
+def create_sentiment_visualization():
+    """Create time series visualization of sentiment scores using existing dataframes"""
+    print("Creating sentiment visualization...")
+    
+    # Create a figure
+    plt.figure(figsize=(15, 8))
+    
+    # Calculate monthly averages for each dataset
+    def calculate_monthly_sentiment(df):
+        df['Date'] = pd.to_datetime(df['Date'])
+        return df.groupby(pd.Grouper(key='Date', freq='M'))['SentimentScore'].mean().reset_index()
+    
+    # Get monthly averages for each dataset
+    monthly_sentiment_usenet = calculate_monthly_sentiment(usenet_comments_all)
+    monthly_sentiment_aids = calculate_monthly_sentiment(filtered_comments)
+    
+    # Get influential authors
+    edge_df = create_author_network(filtered_comments)
+    top_authors = identify_influential_authors(edge_df)
+    
+    # Calculate sentiment for influential authors
+    influential_comments = filtered_comments[filtered_comments['Author'].isin(top_authors['Author'])]
+    monthly_sentiment_influential = calculate_monthly_sentiment(influential_comments)
+    
+    # Plot the lines
+    plt.plot(monthly_sentiment_usenet['Date'], 
+             monthly_sentiment_usenet['SentimentScore'],
+             label='Dataset One', linewidth=2, color='#1f77b4')
+    plt.plot(monthly_sentiment_aids['Date'],
+             monthly_sentiment_aids['SentimentScore'],
+             label='Dataset Three', linewidth=2, color='#ff7f0e')
+    plt.plot(monthly_sentiment_influential['Date'],
+             monthly_sentiment_influential['SentimentScore'],
+             label='Influential Authors', linewidth=2, color='#2ca02c')
+    
+    # Add key events annotations
+    key_events = {
+        '1982-05-11': "Term 'AIDS' Introduced",
+        '1983-09-30': "CDC AIDS Guidelines",
+        '1984-04-23': "HHS HIV/AIDS",
+        '1984-10-01': "First HIV Blood Test",
+        '1985-03-02': "First HIV Test Approved",
+        '1985-07-25': "Rock Hudson's Diagnosis",
+        '1985-10-02': "HIV Transmission Routes",
+        '1986-02-01': "'HIV' Renamed",
+        '1986-08-14': "AZT Approved"
+    }
+    
+    # Add event annotations
+    y_min = plt.ylim()[0]
+    for date, event in key_events.items():
+        date_obj = pd.to_datetime(date)
+        plt.axvline(x=date_obj, color='gray', linestyle='--', alpha=0.5)
+        plt.text(date_obj, y_min, event,
+                rotation=90, verticalalignment='bottom',
+                horizontalalignment='right', fontsize=8)
+    
+    # Customize plot
+    plt.title('Time Series of Average Sentiment Scores Over Time', fontsize=14, pad=20)
+    plt.xlabel('Month', fontsize=12)
+    plt.ylabel('Average Sentiment Score', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
+              ncol=3, frameon=False)
+    
+    plt.gca().set_facecolor('white')
+    plt.gcf().set_facecolor('white')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
+    # Save the plot
+    output_path = os.path.join(output_directory, "Images and Tables/Images/sentiment_time_series.png")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    
+    print(f"Visualization saved to: {output_path}")
+    return monthly_sentiment_usenet, monthly_sentiment_aids, monthly_sentiment_influential
+
+# Run the analysis
+try:
+    print("\nStarting sentiment analysis...")
+    results = create_sentiment_visualization()
+    print("\nAnalysis completed successfully!")
+    
+    # Print summary statistics
+    print("\nSentiment Statistics:")
+    for name, data in zip(['Dataset One', 'Dataset Three', 'Influential Authors'], results):
+        print(f"\n{name}:")
+        print(f"Average sentiment: {data['SentimentScore'].mean():.3f}")
+        print(f"Number of months: {len(data)}")
+        
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+```
+
+## Author Impact Hypothesis
+```{python}
+# Define the Images and Tables directory
+IT_directory = "/Users/emerson/Github/usenet_webpage/Images and Tables/"
+images_dir = os.path.join(IT_directory, "Images")
+tables_dir = os.path.join(IT_directory, "Tables")
+
+# Create directories if they don't exist
+os.makedirs(images_dir, exist_ok=True)
+os.makedirs(tables_dir, exist_ok=True)
+
+# First create the author network and get influential authors
+edge_df = create_author_network(filtered_comments)
+top_influential_authors = identify_influential_authors(edge_df)
+
+# Create top_authors_comments
+top_authors_comments = filtered_comments[
+    filtered_comments['Author'].isin(top_influential_authors['Author'])
+]
+
+def analyze_influential_topics(top_authors_comments):
+    """Perform LDA analysis for influential authors' comments"""
+    print("\nStarting influential authors' topic analysis...")
+    
+    # Preprocess texts using existing preprocess_text function
+    texts = [preprocess_text(text) for text in top_authors_comments['Full.Text']]
+    
+    # Create document-term matrix
+    print("Creating document-term matrix for influential authors...")
+    influential_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
+    influential_dtm = influential_vectorizer.fit_transform(texts)
+    
+    # Train LDA model
+    print("Training LDA model for influential authors...")
+    influential_lda = LatentDirichletAllocation(
+        n_components=6,
+        random_state=123,
+        max_iter=20
+    )
+    influential_lda.fit(influential_dtm)
+    
+    # Get feature names
+    influential_features = influential_vectorizer.get_feature_names_out()
+    
+    # Create top terms dictionary
+    influential_terms_dict = {}
+    
+    for topic_idx, topic in enumerate(influential_lda.components_):
+        top_indices = topic.argsort()[:-20-1:-1]
+        top_terms = [influential_features[i] for i in top_indices]
+        top_betas = [topic[i] for i in top_indices]
+        
+        influential_terms_dict[f'Topic_{topic_idx+1}_terms'] = top_terms
+        influential_terms_dict[f'Topic_{topic_idx+1}_betas'] = [round(beta, 4) for beta in top_betas]
+    
+    # Create DataFrame
+    influential_results_df = pd.DataFrame(influential_terms_dict)
+    
+    # Save results to Tables directory only
+    tables_path = os.path.join(tables_dir, "influential_topics_lda_analysis.html")
+    
+    # Create a clean HTML table with basic styling
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 20px 0;
+                font-family: Arial, sans-serif;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f5f5f5;
+            }}
+            tr:nth-child(even) {{
+                background-color: #f9f9f9;
+            }}
+            caption {{
+                font-size: 1.2em;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body>
+        <table>
+            <caption>LDA Topic Analysis Results for Influential Authors</caption>
+            {influential_results_df.to_html(index=False)}
+        </table>
+    </body>
+    </html>
+    """
+    
+    with open(tables_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    print(f"Influential authors' topic analysis saved to: {tables_path}")
+    
+    return influential_results_df, influential_lda, influential_vectorizer, influential_dtm
+
+def compare_topics(main_results_df, influential_results_df):
+    """Compare topics between main analysis and influential authors"""
+    print("\nComparing topics between main and influential authors...")
+    
+    similarities = []
+    
+    def calculate_jaccard_similarity(set1, set2):
+        """Calculate Jaccard similarity between two sets of terms"""
+        intersection = len(set(set1) & set(set2))
+        union = len(set(set1) | set(set2))
+        return intersection / union if union > 0 else 0
+    
+    # Calculate similarities between all topic pairs
+    for i in range(1, 7):
+        main_terms = main_results_df[f'Topic_{i}_terms'].tolist()
+        for j in range(1, 7):
+            infl_terms = influential_results_df[f'Topic_{j}_terms'].tolist()
+            similarity = calculate_jaccard_similarity(main_terms, infl_terms)
+            similarities.append({
+                'Main_Topic': i,
+                'Influential_Topic': j,
+                'Similarity': similarity
+            })
+    
+    similarities_df = pd.DataFrame(similarities)
+    
+    # Find best matches
+    best_matches = similarities_df.sort_values('Similarity', ascending=False).groupby(
+        'Influential_Topic').first().reset_index()
+    
+    # Create comparison visualization
+    plt.figure(figsize=(12, 6))
+    sns.barplot(
+        data=best_matches,
+        x='Influential_Topic',
+        y='Similarity',
+        hue='Main_Topic',
+        palette='Set2'
+    )
+    
+    # Add value labels on bars
+    for i, row in best_matches.iterrows():
+        plt.text(
+            i, row['Similarity']/2,
+            f"{row['Similarity']:.2f}",
+            ha='center', va='center'
+        )
+    
+    plt.title("Topic Similarity Between Main and Influential Authors")
+    plt.xlabel("Influential Authors' Topic")
+    plt.ylabel("Jaccard Similarity")
+    plt.legend(title="Matching Main Topic")
+    
+    # Save comparison plot to Images directory
+    comparison_path = os.path.join(images_dir, "topic_similarity_comparison.png")
+    plt.savefig(comparison_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Save comparison results to Tables directory
+    best_matches_path = os.path.join(tables_dir, "topic_matches.html")
+    
+    # Create HTML content for best matches
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin: 20px 0;
+                font-family: Arial, sans-serif;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f5f5f5;
+            }}
+            tr:nth-child(even) {{
+                background-color: #f9f9f9;
+            }}
+            caption {{
+                font-size: 1.2em;
+                margin-bottom: 10px;
+                font-weight: bold;
+            }}
+        </style>
+    </head>
+    <body>
+        <table>
+            <caption>Topic Matching Results</caption>
+            {best_matches.to_html(index=False)}
+        </table>
+    </body>
+    </html>
+    """
+    
+    with open(best_matches_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    return best_matches
+
+# Run the analysis
+try:
+    print("\nNumber of comments from influential authors:", len(top_authors_comments))
+    print("Number of unique authors:", len(top_authors_comments['Author'].unique()))
+    
+    # Run LDA for influential authors
+    influential_results_df, influential_lda, influential_vectorizer, influential_dtm = analyze_influential_topics(top_authors_comments)
+    
+    # Compare with main results
+    comparison_results = compare_topics(results_df, influential_results_df)
+    
+    # Print summary statistics
+    print("\nTopic Comparison Summary:")
+    print(f"Average similarity: {comparison_results['Similarity'].mean():.3f}")
+    print(f"Maximum similarity: {comparison_results['Similarity'].max():.3f}")
+    print(f"Minimum similarity: {comparison_results['Similarity'].min():.3f}")
+    
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+    raise
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
 ```

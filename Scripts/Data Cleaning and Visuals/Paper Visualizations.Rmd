@@ -11,7 +11,7 @@ output:
 # Maintenance for R and Python.
 ```{r Reset and Setup}
 rm(list = ls()) 
-knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_AIDs_discourses_webpage')
+knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_webpage')
 ```
 
 ```{r R Load Libraries, Directories, and Datasets}
@@ -30,9 +30,9 @@ library(tm)
 library(SnowballC)
 
 # Load Directories
-output_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage"
-threads_directory <- "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Threads"
-comments_directory <- "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Comments"
+output_directory = "/Users/emerson/Github/usenet_webpage"
+threads_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Threads"
+comments_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Comments"
 
 # Load the datasets
 all_threads <- read.csv(file.path(threads_directory, "aids_related_threads_82TO86.csv"))
@@ -58,9 +58,9 @@ import networkx as nx
 import scipy
 
 # Define directories
-output_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/"
-threads_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Threads/"
-comments_directory = "/Users/emerson/Github/usenet_AIDs_discourses_webpage/CSV Files/Comments/"
+output_directory = "/Users/emerson/Github/usenet_webpage/"
+threads_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Threads/"
+comments_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Comments/"
 
 # Load the datasets with the correct file paths
 all_threads = pd.read_csv(os.path.join(threads_directory, "aids_related_threads_82TO86.csv"))
@@ -192,6 +192,7 @@ dir.create(dirname(output_file_path), recursive = TRUE, showWarnings = FALSE)
 # Use the constructed path for saving the file
 tab_df(keywords_summary_df, file = output_file_path)
 ```
+
 
 # Theme Prevelance Hypothesis
 ```{r Data Preparation}
