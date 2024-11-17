@@ -105,6 +105,7 @@ all_comments <- all_comments %>%
     Author = case_when(
       Author == "SEVENER" ~ "Tim Sevener",
       Author == "The Polymath" ~ "Jerry Hollombe",
+      Author == "fau...@ucbcad.uucp" ~ "Wayne A. Christopher",
       TRUE ~ Author # Retain other authors as-is
     )
   )
@@ -129,21 +130,15 @@ library(stringr)
 
 # Step 1: Define grouped keywords with weights
 keyword_groups <- list(
-  `10` = c("aids", "acquired immune deficiency syndrome", "human immunodeficiency virus", 
-           "grid", "gay-related immune deficiency", "gay plague"),
+  `10` = c("aids", "acquired immune deficiency syndrome", "human immunodeficiency virus", "gay-related immune deficiency", "gay plague"),
   `9` = c("hiv", "htlv", "human t-lymphotropic virus", "gay cancer", "kaposi's sarcoma"),
-  `8` = c("slim disease", "pneumocystis pneumonia", "gay disease", "homosexual disease", 
-          "immune disease"),
+  `8` = c("slim disease", "pneumocystis pneumonia", "gay disease", "homosexual disease", "immune disease"),
   `7` = c("fag cancer", "homosexual cancer", "gay compromise syndrome", "aids hysteria"),
-  `6` = c("gay fear", "fear of gay", "fear of homosexual", "gay panic", "queer disease", 
-          "pink disease"),
-  `5` = c("sexual orientation disease", "sexual deviant disease", "patients", 
-          "victims", "carriers"),
+  `6` = c("gay fear", "fear of gay", "fear of homosexual", "gay panic", "queer disease", "pink disease"),
+  `5` = c("sexual orientation disease", "sexual deviant disease", "patients", "carriers"),
   `4` = c("bisexual", "gay/bisexual", "gay men", "homosexuals", "gay sex", "homophobia"),
-  `3` = c("virus", "syndrome", "outbreak", "pandemic", "blood disease", "blood test", 
-          "sexual transmission"),
-  `2` = c("sodomy", "bathhouses", "promiscuity", "gay community", "homosexual acts", 
-          "infection", "epidemic"),
+  `3` = c("virus", "syndrome", "pandemic", "blood disease", "blood test", "sexual transmission"),
+  `2` = c("sodomy", "bathhouses", "promiscuity", "gay community", "homosexual acts", "infection", "epidemic"),
   `1` = c("sex", "queer", "gays", "lesbians", "lifestyle", "contagion", 
           "unsafe practices")
 )
@@ -167,14 +162,16 @@ relevant_threads <- all_threads %>%
 
 # Step 3: Add relevancy scores to comments
 match_keywords <- function(text, keywords, weights) {
+  if (is.na(text)) return(0)
   text <- tolower(text)
-  sapply(names(keywords), function(kw) {
-    if (str_detect(text, paste0("\\b", kw, "\\b"))) {
+  sum(sapply(names(keywords), function(kw) {
+    if (!is.na(str_detect(text, paste0("\\b", kw, "\\b"))) && 
+        str_detect(text, paste0("\\b", kw, "\\b"))) {
       return(weights[kw])
     } else {
       return(0)
     }
-  }) %>% sum()
+  }))
 }
 
 comments_with_relevancy <- all_comments %>%
@@ -186,9 +183,17 @@ comments_with_relevancy <- all_comments %>%
 # Step 4: Identify relevant threads
 relevant_threads <- relevant_threads %>%
   mutate(
-    TitleHasKeyword = rowSums(sapply(names(title_keyword_weights), function(kw) {
-      grepl(kw, tolower(Thread.Title), fixed = TRUE) * title_keyword_weights[kw]
-    })) > 0
+    TitleHasKeyword = sapply(Thread.Title, function(title) {
+      if (is.na(title)) return(0)
+      sum(sapply(names(title_keyword_weights), function(kw) {
+        if (!is.na(str_detect(tolower(title), paste0("\\b", kw, "\\b"))) &&
+            str_detect(tolower(title), paste0("\\b", kw, "\\b"))) {
+          return(title_keyword_weights[kw])
+        } else {
+          return(0)
+        }
+      }))
+    }) > 0
   ) %>%
   filter(Unique_ThreadID %in% comments_with_relevancy$Thread.ID | TitleHasKeyword)
 
@@ -196,9 +201,9 @@ relevant_threads <- relevant_threads %>%
 relevant_comments <- all_comments %>%
   filter(Thread.ID %in% relevant_threads$Unique_ThreadID) %>%
   mutate(
-    Relevancy = rowSums(sapply(names(keyword_weights), function(kw) {
-      grepl(kw, tolower(Full.Text), fixed = TRUE) * keyword_weights[kw]
-    }))
+    Relevancy = sapply(Full.Text, function(text) {
+      match_keywords(text, keyword_weights, keyword_weights)
+    })
   )
 
 # Step 6: Calculate thread-level relevancy
@@ -208,7 +213,7 @@ thread_relevancy <- comments_with_relevancy %>%
     AvgCommentRelevancy = mean(Relevancy, na.rm = TRUE)  # Average score per relevant comment
   ) %>%
   mutate(
-    TitleRelevancy = relevant_threads$TitleHasKeyword[match(Thread.ID, relevant_threads$Unique_ThreadID)] * 10,  # High relevancy for title match
+    TitleRelevancy = relevant_threads$TitleHasKeyword[match(Thread.ID, relevant_threads$Unique_ThreadID)] * 10,
     ThreadRelevancyScore = ifelse(TitleRelevancy == 10, 10, AvgCommentRelevancy + TitleRelevancy)  # Prioritize threads with relevant titles
   )
 
@@ -219,83 +224,22 @@ relevant_threads <- relevant_threads %>%
 # Step 8: Save the updated datasets
 write.csv(relevant_threads, file.path(threads_directory, "dataset2_threads.csv"), row.names = FALSE)
 write.csv(relevant_comments, file.path(comments_directory, "dataset2_comments.csv"), row.names = FALSE)
+
+# Print specified statistics
+cat("Number of threads after filtering:", nrow(relevant_threads), "\n")
+cat("Number of comments after filtering:", nrow(relevant_comments), "\n")
 ```
 
-## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartile of Relevancy Scores
-```{r Calculate Percentiles and Plots}
-# Load required libraries
-library(dplyr)
-library(ggplot2)
-library(stringr)
-
-# Step 1: Separate threads with TitleRelevancy == 10
-high_title_relevance_threads <- relevant_threads %>%
-  filter(TitleRelevancy == 10)
-
-# Step 1: Refine Keyword Weights
-# Adjust weights to prioritize AIDS-specific keywords
-keyword_weights <- list(
-  `10` = c("aids", "acquired immune deficiency syndrome", "hiv", 
-           "human immunodeficiency virus", "gay plague"),
-  `9` = c("grid", "gay-related immune deficiency", "htlv", 
-          "gay cancer", "kaposi's sarcoma"),
-  `8` = c("immune deficiency", "immune system", "opportunistic infection",
-          "slim disease", "gay disease", "homosexual disease"),
-  `7` = c("aids-related complex", "arc", "pneumocystis pneumonia",
-          "aids hysteria", "gay compromise syndrome"),
-  `6` = c("homophobia", "treatment", "transmission", "sexual transmission"),
-  `5` = c("virus", "health", "disease", "infection", "blood test"),
-  `3` = c("syndrome", "outbreak", "epidemic"),
-  `1` = c("queer", "gay", "lesbian", "homosexuals", "unsafe practices")
-)
-
-# Flatten the keyword list into a named vector
-keyword_weights <- unlist(lapply(names(keyword_weights), function(weight) {
-  setNames(rep(as.numeric(weight), length(keyword_weights[[weight]])), keyword_weights[[weight]])
-}))
-
-# Step 2: Adjust Filtering for Comments
-match_keywords <- function(text, keywords, weights) {
-  text <- tolower(text)
-  sapply(names(keywords), function(kw) {
-    if (str_detect(text, paste0("\\b", kw, "\\b"))) {
-      return(weights[kw])
-    } else {
-      return(0)
-    }
-  }) %>% sum()
-}
-
-filtered_relevant_comments <- relevant_comments %>%
-  rowwise() %>%
-  mutate(
-    Relevancy = match_keywords(Full.Text, keyword_weights, keyword_weights),
-    CompoundMatch = sum(str_detect(tolower(Full.Text), "\\b(aids|hiv)\\b")) > 0 &
-                    sum(str_detect(tolower(Full.Text), "\\b(immune|treatment|virus|syndrome)\\b")) > 0
-  ) %>%
-  filter(Relevancy > 0 & CompoundMatch)
-
-# Step 3: Filter Threads Based on Relevant Comments
+## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quintile of Relevancy Scores
+```{r Calculate Quintiles and Box Plot}
 filtered_relevant_threads <- relevant_threads %>%
-  filter(Unique_ThreadID %in% filtered_relevant_comments$Thread.ID)
+  arrange(desc(ThreadRelevancyScore)) %>%  # Sort by relevancy score in descending order
+  slice(1:150)  # Select the top 100 threads
 
-# Step 4: Apply Percentile-Based Filtering
-percentiles <- quantile(filtered_relevant_threads$ThreadRelevancyScore, probs = seq(0, 1, by = 0.01), na.rm = TRUE)
-top_25th_percentile_cutoff <- quantile(filtered_relevant_threads$ThreadRelevancyScore, probs = 0.75, na.rm = TRUE)
-
-filtered_relevant_threads <- filtered_relevant_threads %>%
-  filter(ThreadRelevancyScore >= top_25th_percentile_cutoff)
-
-# Step 5: Add Back High-Title-Relevance Threads
-filtered_relevant_threads <- bind_rows(filtered_relevant_threads, 
-                                       high_title_relevance_threads %>%
-                                         filter(!Unique_ThreadID %in% filtered_relevant_threads$Unique_ThreadID))
-
-# Step 6: Filter Comments for Final Threads
 filtered_relevant_comments <- relevant_comments %>%
-  filter(Thread.ID %in% filtered_relevant_threads$Unique_ThreadID)
+  semi_join(filtered_relevant_threads, by = c("Thread.ID" = "Unique_ThreadID"))
 
-# Step 7: Save the Final Datasets
+# Save filtered datasets
 write.csv(filtered_relevant_threads, 
           file.path(threads_directory, "dataset3_threads.csv"), 
           row.names = FALSE)
@@ -303,9 +247,9 @@ write.csv(filtered_relevant_comments,
           file.path(comments_directory, "dataset3_comments.csv"), 
           row.names = FALSE)
 
-# Step 8: Print Summary Statistics
-cat("Number of threads after enhanced filtering:", nrow(filtered_relevant_threads), "\n")
-cat("Number of comments after enhanced filtering:", nrow(filtered_relevant_comments), "\n")
+# Print specified statistics
+cat("Number of threads after filtering:", nrow(filtered_relevant_threads), "\n")
+cat("Number of comments after filtering:", nrow(filtered_relevant_comments), "\n")
 ```
 
 ## Dataset 4 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartiles of Relevancy Scores and for Only Influential Authors Comments and Threads

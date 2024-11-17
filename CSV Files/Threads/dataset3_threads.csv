@@ -1,116 +1,151 @@
-"Unique_ThreadID","newsgroup","newsgroup_ID","NG_Relative_ThreadID","Thread.Title","URL","Date","Number.of.Messages","TitleHasKeyword","AvgCommentRelevancy","TitleRelevancy","ThreadRelevancyScore"
-"NG01_TH01226","netmed","NG01","TH01226","Answer to Medical Puzzle #6","https://groups.google.com./g/net.med/c/akgubYYgb4o",1986-01-25,1,FALSE,42,0,42
-"NG01_TH01033","netmed","NG01","TH01033","legal definition of practice of medicine","https://groups.google.com./g/net.med/c/FYtfw9w2ypM",1985-10-24,17,FALSE,13,0,13
-"NG01_TH00796","netmed","NG01","TH00796","The Immune System and Cancer: A Rebuttal","https://groups.google.com./g/net.med/c/B8inQ-A80VE",1985-07-24,1,FALSE,42,0,42
-"NG01_TH00697","netmed","NG01","TH00697","nonoxynol-9","https://groups.google.com./g/net.med/c/W4ls3_kojuI",1985-04-15,3,FALSE,18.3333333333333,0,18.3333333333333
-"NG01_TH00578","netmed","NG01","TH00578","Non-A Non-B Hepatitis ????","https://groups.google.com./g/net.med/c/aQnNOF203vE",1985-01-14,3,FALSE,13.5,0,13.5
-"NG02_TH01056","netmotss","NG02","TH01056","Antibody testing","https://groups.google.com./g/net.motss/c/nuljxyKHSO0",1986-03-20,6,FALSE,16.8333333333333,0,16.8333333333333
-"NG02_TH00981","netmotss","NG02","TH00981","A design for Living...CURRENT","https://groups.google.com./g/net.motss/c/Frm3dDOCYNQ",1986-01-23,1,FALSE,25,0,25
-"NG02_TH00980","netmotss","NG02","TH00980","Jason's Followup to \""It Ain't Pretty","https://groups.google.com./g/net.motss/c/4LGTKEjpz_s",1986-01-23,1,FALSE,23,0,23
-"NG02_TH00961","netmotss","NG02","TH00961","Ahhh, . . . mmmm . . . a question.","https://groups.google.com./g/net.motss/c/Rf_4qwJaTto",1986-01-12,1,FALSE,13,0,13
-"NG02_TH00928","netmotss","NG02","TH00928","Nonoxynol-9","https://groups.google.com./g/net.motss/c/qTwX0OE7Ji4",1985-12-03,1,FALSE,15,0,15
-"NG02_TH00922","netmotss","NG02","TH00922","Safe Sex","https://groups.google.com./g/net.motss/c/yLJJC6s7e_0",1985-11-28,2,FALSE,14,0,14
-"NG02_TH00911","netmotss","NG02","TH00911","Recent articles; homosex & science","https://groups.google.com./g/net.motss/c/I5YIBJiyahU",1985-11-20,3,FALSE,20.6666666666667,0,20.6666666666667
-"NG02_TH00905","netmotss","NG02","TH00905","Ken Arndt et al [long but hopefully worth it]","https://groups.google.com./g/net.motss/c/GcTm6fVOzi8",1985-11-18,1,FALSE,29,0,29
-"NG02_TH00900","netmotss","NG02","TH00900","Getin' Satisfaction","https://groups.google.com./g/net.motss/c/xC5UJxVRRFo",1985-11-16,2,FALSE,21,0,21
-"NG02_TH00838","netmotss","NG02","TH00838","good Art Hoppe today...","https://groups.google.com./g/net.motss/c/Ya-CebLBzrM",1985-09-10,2,FALSE,24,0,24
-"NG02_TH00811","netmotss","NG02","TH00811","Current PR","https://groups.google.com./g/net.motss/c/UvCGfB6T9CE",1985-08-22,1,FALSE,13,0,13
-"NG02_TH00784","netmotss","NG02","TH00784","Ohmygawd!!!","https://groups.google.com./g/net.motss/c/16INFisvzlA",1985-07-29,4,FALSE,19.5,0,19.5
-"NG02_TH00755","netmotss","NG02","TH00755","Jerry lovs ya Update","https://groups.google.com./g/net.motss/c/b3WTPIZ_ew8",1985-07-09,1,FALSE,22,0,22
-"NG02_TH00749","netmotss","NG02","TH00749","NY Gay Pride Parade","https://groups.google.com./g/net.motss/c/_PpZXZd6qMU",1985-07-01,1,FALSE,27,0,27
-"NG02_TH00732","netmotss","NG02","TH00732","1985 Pride Parade","https://groups.google.com./g/net.motss/c/z-e_AEvED1I",1985-06-18,2,FALSE,13,0,13
-"NG02_TH00511","netmotss","NG02","TH00511","Article from ""Weekly World News""","https://groups.google.com./g/net.motss/c/iWzX-bXx6jg",1984-11-14,2,FALSE,29.5,0,29.5
-"NG02_TH00451","netmotss","NG02","TH00451","To Byron H., Ken's (re)butt!","https://groups.google.com./g/net.motss/c/LoRL9nnjJRs",1984-10-11,2,FALSE,22,0,22
-"NG02_TH00447","netmotss","NG02","TH00447","Reply to Byron Howes","https://groups.google.com./g/net.motss/c/pWOF91ChVLI",1984-10-11,2,FALSE,18.5,0,18.5
-"NG02_TH00431","netmotss","NG02","TH00431","Reply to Byron Howes","https://groups.google.com./g/net.motss/c/5io-7FwBU1E",1984-10-06,1,FALSE,26,0,26
-"NG02_TH00372","netmotss","NG02","TH00372","Something for Ron Rizzo's proscribed list","https://groups.google.com./g/net.motss/c/g9ZKGAF3i40",1984-09-07,1,FALSE,34,0,34
-"NG02_TH00357","netmotss","NG02","TH00357","Serpent in Paradise","https://groups.google.com./g/net.motss/c/fx91yGF5YjY",1984-08-24,7,FALSE,14.5,0,14.5
-"NG04_TH03934","netpolitics","NG04","TH03934","Political Quote of the Month","https://groups.google.com./g/net.politics/c/1ed28EDhXjw",1986-03-02,6,FALSE,13,0,13
-"NG06_TH03168","netsingles","NG06","TH03168","Saving Lives","https://groups.google.com./g/net.singles/c/De20yQjf2eQ",1985-11-25,8,FALSE,14,0,14
-"NG01_TH01420","netmed","NG01","TH01420","AIDS","https://groups.google.com./g/net.med/c/JVvLCQ24_jc",1986-09-24,3,TRUE,11.6666666666667,10,10
-"NG01_TH01411","netmed","NG01","TH01411","AIDS posting","https://groups.google.com./g/net.med/c/x0t_ee4RnlE",1986-09-11,1,TRUE,10,10,10
-"NG01_TH01407","netmed","NG01","TH01407","Interesting AIDS fact","https://groups.google.com./g/net.med/c/bHCzTh7InXg",1986-07-30,1,TRUE,13,10,10
-"NG01_TH01352","netmed","NG01","TH01352","AIDS and RE: The worst (hist.) surgical proc.","https://groups.google.com./g/net.med/c/sI1ETPXOpyc",1986-03-12,12,TRUE,9.91666666666667,10,10
-"NG01_TH01259","netmed","NG01","TH01259","AIDS budget cut proposal","https://groups.google.com./g/net.med/c/vTrrcpv0RUA",1986-02-06,1,TRUE,10,10,10
-"NG01_TH01230","netmed","NG01","TH01230","AIDS Incidence in perspective","https://groups.google.com./g/net.med/c/1ARcUmBKZ10",1986-01-28,1,TRUE,11,10,10
-"NG01_TH01164","netmed","NG01","TH01164","On meeting someone with AIDS","https://groups.google.com./g/net.med/c/mjsT7OncThg",1986-01-03,1,TRUE,14,10,10
-"NG01_TH01157","netmed","NG01","TH01157","AIDS Research - Antiviral Drugs (Query)?","https://groups.google.com./g/net.med/c/zTIyZZtv2fA",1985-12-23,7,TRUE,19.7142857142857,10,10
-"NG01_TH01117","netmed","NG01","TH01117","prevention of aids","https://groups.google.com./g/net.med/c/06JJZSw6Oz8",1985-12-04,1,TRUE,10,10,10
-"NG01_TH01115","netmed","NG01","TH01115","Answer to AIDS questions","https://groups.google.com./g/net.med/c/5cgl9ZU_E2g",1985-12-03,6,TRUE,14,10,10
-"NG01_TH01106","netmed","NG01","TH01106","a stupid question about lupus and AIDS","https://groups.google.com./g/net.med/c/oU7RSM2COlE",1985-11-25,1,TRUE,10,10,10
-"NG01_TH01101","netmed","NG01","TH01101","Possible Good News about AIDS?","https://groups.google.com./g/net.med/c/PKhA-E7TCOo",1985-11-23,1,TRUE,18,10,10
-"NG01_TH01079","netmed","NG01","TH01079","AIDS in Africa: a newspaper editorial","https://groups.google.com./g/net.med/c/GSscEgGnBcA",1985-11-16,2,TRUE,31.5,10,10
-"NG01_TH01071","netmed","NG01","TH01071","Scary thought about AIDS","https://groups.google.com./g/net.med/c/RjaQzfsldbQ",1985-11-12,5,TRUE,14.4,10,10
-"NG01_TH01030","netmed","NG01","TH01030","AIDS transmission (not easy to come by)","https://groups.google.com./g/net.med/c/RBVQ99n7o6I",1985-10-22,2,TRUE,11,10,10
-"NG01_TH01028","netmed","NG01","TH01028","AIDS: beyond high-risk groups","https://groups.google.com./g/net.med/c/0giK_GQ_-XY",1985-10-21,19,TRUE,13.9473684210526,10,10
-"NG01_TH01025","netmed","NG01","TH01025","Aids screening","https://groups.google.com./g/net.med/c/DYfYNNI61YM",1985-10-21,1,TRUE,10,10,10
-"NG01_TH01017","netmed","NG01","TH01017","AIDS: Casual contact exonerated","https://groups.google.com./g/net.med/c/a0hVZmyMBiA",1985-10-16,1,TRUE,28,10,10
-"NG01_TH01016","netmed","NG01","TH01016","Being sensible about AIDS transmission","https://groups.google.com./g/net.med/c/Yx6HXihhKPM",1985-10-16,3,TRUE,10,10,10
-"NG01_TH01015","netmed","NG01","TH01015","Update on AIDS and Health Care Workers.","https://groups.google.com./g/net.med/c/Z4GcqGYKPfY",1985-10-16,2,TRUE,15,10,10
-"NG01_TH01001","netmed","NG01","TH01001","Politics of AIDS, of Foster Care","https://groups.google.com./g/net.med/c/NB_zOSZvP_E",1985-10-03,16,TRUE,19.1666666666667,10,10
-"NG01_TH00954","netmed","NG01","TH00954","Politics of AIDS - military testing","https://groups.google.com./g/net.med/c/Dto2-30mKU8",1985-09-12,1,TRUE,19,10,10
-"NG01_TH00942","netmed","NG01","TH00942","Personal Revelation about AIDS","https://groups.google.com./g/net.med/c/fjV21T5IOmg",1985-09-06,1,TRUE,14,10,10
-"NG01_TH00875","netmed","NG01","TH00875","AIDS Transmission (Addendum)","https://groups.google.com./g/net.med/c/mOyXcZB48N8",1985-08-20,7,TRUE,10.75,10,10
-"NG01_TH00872","netmed","NG01","TH00872","Proof that AIDS can be transmitted by Semen","https://groups.google.com./g/net.med/c/82jkWkwWkyk",1985-08-20,1,TRUE,16,10,10
-"NG01_TH00865","netmed","NG01","TH00865","AIDS PREVENTABLE #2","https://groups.google.com./g/net.med/c/JvcFERwNcvU",1985-08-16,2,TRUE,13,10,10
-"NG01_TH00841","netmed","NG01","TH00841","AIDS IS PREVENTABLE","https://groups.google.com./g/net.med/c/xW4EgHYHk74",1985-08-11,5,TRUE,13.4,10,10
-"NG01_TH00833","netmed","NG01","TH00833","Bermuda Cancer (?) Clinic and AIDS","https://groups.google.com./g/net.med/c/M1rIC9IoLDg",1985-08-08,1,TRUE,18,10,10
-"NG01_TH00828","netmed","NG01","TH00828","AIDS in the news","https://groups.google.com./g/net.med/c/w2qGlAxh-X0",1985-08-08,2,TRUE,10,10,10
-"NG01_TH00823","netmed","NG01","TH00823","Poll reports fear of AIDS growing in US","https://groups.google.com./g/net.med/c/KbsYoEHnaFc",1985-08-05,1,TRUE,16,10,10
-"NG01_TH00801","netmed","NG01","TH00801","AIDS","https://groups.google.com./g/net.med/c/w1K16tU-dHQ",1985-07-25,1,TRUE,10,10,10
-"NG01_TH00785","netmed","NG01","TH00785","How AIDS virus foils immune system: new finding","https://groups.google.com./g/net.med/c/eO-cfvySmg4",1985-07-16,1,TRUE,46,10,10
-"NG01_TH00773","netmed","NG01","TH00773","The Age of AIDS","https://groups.google.com./g/net.med/c/iNn_68vSslQ",1985-07-07,6,TRUE,21.5,10,10
-"NG01_TH00744","netmed","NG01","TH00744","HLA-DR antibodies cause positive HTLV-3 test results.","https://groups.google.com./g/net.med/c/AbEsyZIkbz8",1985-06-11,2,TRUE,19,10,10
-"NG01_TH00729","netmed","NG01","TH00729","Anti-AIDS drugs promising.","https://groups.google.com./g/net.med/c/MzPyTU4bavw",1985-05-28,1,TRUE,32,10,10
-"NG01_TH00656","netmed","NG01","TH00656","2nd AIDS test approved","https://groups.google.com./g/net.med/c/0M-_CBUZnkI",1985-03-17,2,TRUE,26,10,10
-"NG01_TH00644","netmed","NG01","TH00644","AIDS discussion gone?","https://groups.google.com./g/net.med/c/Y3i5msIYXjE",1985-03-12,1,TRUE,10,10,10
-"NG01_TH00606","netmed","NG01","TH00606","Drug kills alleged AIDS virus in bloodstream","https://groups.google.com./g/net.med/c/6ZGvu0prxk0",1985-02-08,1,TRUE,29,10,10
-"NG01_TH00591","netmed","NG01","TH00591","A Lay question about AIDS?","https://groups.google.com./g/net.med/c/w7JFdB38ZDg",1985-01-29,6,TRUE,16.6666666666667,10,10
-"NG01_TH00586","netmed","NG01","TH00586","Aids and paranoia","https://groups.google.com./g/net.med/c/vXDFrtZKsVA",1985-01-18,1,TRUE,11,10,10
-"NG01_TH00585","netmed","NG01","TH00585","A Lay question about AIDS?","https://groups.google.com./g/net.med/c/gEsl-VtdE0s",1985-01-17,2,TRUE,31,10,10
-"NG01_TH00582","netmed","NG01","TH00582","AIDS 4: Epidemiology of AIDS (long, with data)","https://groups.google.com./g/net.med/c/0JFoaDkddfI",1985-01-15,1,TRUE,43,10,10
-"NG01_TH00575","netmed","NG01","TH00575","Test for exposure to AIDS","https://groups.google.com./g/net.med/c/G0h9guZRBWs",1985-01-08,4,TRUE,35.25,10,10
-"NG01_TH00573","netmed","NG01","TH00573","AIDS Receptor on White Cells","https://groups.google.com./g/net.med/c/xl3ebIaKFRQ",1985-01-02,1,TRUE,23,10,10
-"NG01_TH00376","netmed","NG01","TH00376","AIDS Breakthrough","https://groups.google.com./g/net.med/c/n9WbjWW_Hh0",1984-04-24,3,TRUE,17.6666666666667,10,10
-"NG01_TH00304","netmed","NG01","TH00304","Anal sex tied to AIDS","https://groups.google.com./g/net.med/c/ZGvG0ZRvkEU",1984-02-06,1,TRUE,12,10,10
-"NG02_TH01054","netmotss","NG02","TH01054","HTLV-III antibody test","https://groups.google.com./g/net.motss/c/5bi9aorha90",1986-03-19,4,TRUE,15.6666666666667,10,10
-"NG02_TH01052","netmotss","NG02","TH01052","HTLVIII Testing","https://groups.google.com./g/net.motss/c/2q4B_NKkcnU",1986-03-19,2,TRUE,22.5,10,10
-"NG02_TH01047","netmotss","NG02","TH01047","The HTLV3 Antibody Test","https://groups.google.com./g/net.motss/c/DHZqhHGIEas",1986-03-13,1,TRUE,14,10,10
-"NG02_TH01004","netmotss","NG02","TH01004","AIDS research & the military","https://groups.google.com./g/net.motss/c/oSm-oHnLCAI",1986-02-13,1,TRUE,15,10,10
-"NG02_TH01002","netmotss","NG02","TH01002","AIDS virus in prison evaporates basic rights","https://groups.google.com./g/net.motss/c/7l7-IDIk9fI",1986-02-13,6,TRUE,18.1666666666667,10,10
-"NG02_TH00971","netmotss","NG02","TH00971","AIDS virus man-made","https://groups.google.com./g/net.motss/c/xSoMxJ3Ax8o",1986-01-17,1,TRUE,3,10,10
-"NG02_TH00960","netmotss","NG02","TH00960","AIDS Virus Man-Made?","https://groups.google.com./g/net.motss/c/S1_Tef5EQJA",1986-01-11,1,TRUE,13,10,10
-"NG02_TH00926","netmotss","NG02","TH00926","Answer to AIDS questions","https://groups.google.com./g/net.motss/c/5cgl9ZU_E2g",1985-12-03,7,TRUE,11,10,10
-"NG02_TH00912","netmotss","NG02","TH00912","AIDS statistic in DISCOVERY magazine","https://groups.google.com./g/net.motss/c/rN-dF9Ma-u4",1985-11-21,1,TRUE,10,10,10
-"NG02_TH00908","netmotss","NG02","TH00908","Shift in AIDS risk groups","https://groups.google.com./g/net.motss/c/DX7LMfnV1Fw",1985-11-19,2,TRUE,18,10,10
-"NG02_TH00883","netmotss","NG02","TH00883","More on AIDS and Health Workers","https://groups.google.com./g/net.motss/c/IR97cYiLrxU",1985-11-01,2,TRUE,16.5,10,10
-"NG02_TH00872","netmotss","NG02","TH00872","AIDS: beyond high-risk groups","https://groups.google.com./g/net.motss/c/0giK_GQ_-XY",1985-10-17,20,TRUE,16.5,10,10
-"NG02_TH00864","netmotss","NG02","TH00864","Media accounts of AIDS, and a brief digression","https://groups.google.com./g/net.motss/c/1QZfBApreT0",1985-10-04,2,TRUE,21.5,10,10
-"NG02_TH00851","netmotss","NG02","TH00851","AIDS and Insurance","https://groups.google.com./g/net.motss/c/MXA8UVoa9qM",1985-09-19,1,TRUE,10,10,10
-"NG02_TH00847","netmotss","NG02","TH00847","Canada - Donors to be told if AIDS test positive","https://groups.google.com./g/net.motss/c/af36gIt3_E4",1985-09-15,1,TRUE,23,10,10
-"NG02_TH00835","netmotss","NG02","TH00835","Personal Revelation about AIDS","https://groups.google.com./g/net.motss/c/fjV21T5IOmg",1985-09-08,3,TRUE,27,10,10
-"NG02_TH00827","netmotss","NG02","TH00827","Journalistic AIDS","https://groups.google.com./g/net.motss/c/dMQU5oE_bfk",1985-08-31,1,TRUE,13,10,10
-"NG02_TH00820","netmotss","NG02","TH00820","Lord Avon a victim of AIDS","https://groups.google.com./g/net.motss/c/vDdXmrA8kcg",1985-08-28,1,TRUE,10,10,10
-"NG02_TH00777","netmotss","NG02","TH00777","Death: the final chapter on AIDS","https://groups.google.com./g/net.motss/c/MN6nX5V3WMc",1985-07-23,1,TRUE,24,10,10
-"NG02_TH00729","netmotss","NG02","TH00729","AIDS research funding","https://groups.google.com./g/net.motss/c/Je-gdeV_WSU",1985-06-16,1,TRUE,10,10,10
-"NG02_TH00728","netmotss","NG02","TH00728","Pentagon: Donors with HTLV-3 antibodies won't be disciplined","https://groups.google.com./g/net.motss/c/eI412PRUYQY",1985-06-13,1,TRUE,19,10,10
-"NG02_TH00673","netmotss","NG02","TH00673","AIDS virus and monkeys","https://groups.google.com./g/net.motss/c/pU5k6ah41RU",1985-04-15,2,TRUE,24.5,10,10
-"NG02_TH00623","netmotss","NG02","TH00623","Some spermicides may lower risk of AIDS","https://groups.google.com./g/net.motss/c/Cekf-bIGbcM",1985-02-16,2,TRUE,17.5,10,10
-"NG02_TH00612","netmotss","NG02","TH00612","Drug kills alleged AIDS virus in bloodstream","https://groups.google.com./g/net.motss/c/LE7sZT5ALHk",1985-02-08,1,TRUE,29,10,10
-"NG02_TH00609","netmotss","NG02","TH00609","AnFirst step towards an AIDS vaccine","https://groups.google.com./g/net.motss/c/lHC1FRzMpeA",1985-02-05,1,TRUE,35,10,10
-"NG02_TH00597","netmotss","NG02","TH00597","AIDS/future attitudes","https://groups.google.com./g/net.motss/c/LInJBgsSzhU",1985-01-28,3,TRUE,19,10,10
-"NG02_TH00578","netmotss","NG02","TH00578","AIDS: Reply from Craig Werner","https://groups.google.com./g/net.motss/c/Ka2d_rpqudE",1985-01-08,1,TRUE,29,10,10
-"NG02_TH00569","netmotss","NG02","TH00569","Scientists answer a 'why' for AIDS","https://groups.google.com./g/net.motss/c/Jk7puOGY7o4",1985-01-02,2,TRUE,28,10,10
-"NG02_TH00556","netmotss","NG02","TH00556","Latest in AIDS research","https://groups.google.com./g/net.motss/c/jB7rzOz6R3Q",1984-12-14,1,TRUE,41,10,10
-"NG02_TH00514","netmotss","NG02","TH00514","Aids: Auch Frauen gefaehrdet (German)","https://groups.google.com./g/net.motss/c/u7nARxfU1MM",1984-11-18,1,TRUE,13,10,10
-"NG02_TH00422","netmotss","NG02","TH00422","AIDS update - ""n"" at risk!","https://groups.google.com./g/net.motss/c/8-NpEDACahc",1984-10-02,2,TRUE,20,10,10
-"NG02_TH00220","netmotss","NG02","TH00220","Homophobia & science: AIDS in the medical journals","https://groups.google.com./g/net.motss/c/MfRUZnSJqiU",1984-06-07,1,TRUE,14,10,10
-"NG02_TH00126","netmotss","NG02","TH00126","Anal sex tied to AIDS - journal of the AMA","https://groups.google.com./g/net.motss/c/8uPRq4T7RRs",1984-01-25,3,TRUE,21,10,10
-"NG02_TH00019","netmotss","NG02","TH00019","AIDS","https://groups.google.com./g/net.motss/c/2hezatAfgs0",1983-10-24,4,TRUE,11.6666666666667,10,10
-"NG05_TH01298","netreligion","NG05","TH01298","Simian Immune Deficency Syndrome (SAIDS)","https://groups.google.com./g/net.religion/c/lupQlSB2iP4",1984-04-03,1,TRUE,18,10,10
-"NG05_TH00827","netreligion","NG05","TH00827","homosexuality [& AIDS]","https://groups.google.com./g/net.religion/c/4HamMA3xLWE",1983-11-21,1,TRUE,10,10,10
-"NG06_TH03462","netsingles","NG06","TH03462","Supreme Court Ruling on Sodomy (AIDS comment)","https://groups.google.com./g/net.singles/c/LFky_7eKoXA",1986-07-11,1,TRUE,28,10,10
-"NG06_TH01064","netsingles","NG06","TH01064","AIDS","https://groups.google.com./g/net.singles/c/3vNDbkz8wm4",1983-11-27,2,TRUE,10,10,10
-"NG06_TH00354","netsingles","NG06","TH00354","AIDS","https://groups.google.com./g/net.singles/c/nloso0YO0iM",1983-01-13,4,TRUE,25,10,10
-"NG06_TH00303","netsingles","NG06","TH00303","AIDS","https://groups.google.com./g/net.singles/c/gEDvClZ47fg",1982-12-23,4,TRUE,17,10,10
-"NG06_TH00295","netsingles","NG06","TH00295","what is AIDS \?","https://groups.google.com./g/net.singles/c/4Eimqr6nxA8",1982-12-22,1,TRUE,10,10,10
+"Unique_ThreadID","newsgroup","newsgroup_ID","NG_Relative_ThreadID","Thread.Title","URL","Date","Number.of.Messages","TitleHasKeyword","AvgCommentRelevancy","TitleRelevancy","ThreadRelevancyScore","Quintile","ThreadRelevancyScore_Adjusted","Percentile"
+"NG01_TH01226","netmed","NG01","TH01226","Answer to Medical Puzzle #6","https://groups.google.com./g/net.med/c/akgubYYgb4o",1986-01-25,1,FALSE,42,0,42,"Q5",42.000000988938,"100th"
+"NG01_TH00796","netmed","NG01","TH00796","The Immune System and Cancer: A Rebuttal","https://groups.google.com./g/net.med/c/B8inQ-A80VE",1985-07-24,1,FALSE,42,0,42,"Q5",42.0000009441308,"100th"
+"NG02_TH01039","netmotss","NG02","TH01039","life story (long)","https://groups.google.com./g/net.motss/c/JQnpJ1pwwtU",1986-03-09,1,FALSE,31,0,31,"Q4",31.0000003465496,"74th"
+"NG02_TH00372","netmotss","NG02","TH00372","Something for Ron Rizzo's proscribed list","https://groups.google.com./g/net.motss/c/g9ZKGAF3i40",1984-09-07,1,FALSE,31,0,31,"Q4",31.0000004709805,"74th"
+"NG02_TH00511","netmotss","NG02","TH00511","Article from ""Weekly World News""","https://groups.google.com./g/net.motss/c/iWzX-bXx6jg",1984-11-14,2,FALSE,29.5,0,29.5,"Q4",29.5000008242723,"70th"
+"NG02_TH00905","netmotss","NG02","TH00905","Ken Arndt et al [long but hopefully worth it]","https://groups.google.com./g/net.motss/c/GcTm6fVOzi8",1985-11-18,1,FALSE,29,0,29,"Q4",29.0000002604831,"69th"
+"NG02_TH00894","netmotss","NG02","TH00894","re An Early Frost","https://groups.google.com./g/net.motss/c/qbpvxGccmqU",1985-11-13,2,FALSE,28,0,28,"Q4",28.0000003945903,"66th"
+"NG05_TH02517","netreligion","NG05","TH02517","reply to Richard Brower 2","https://groups.google.com./g/net.religion/c/VRn1xaSOvfM",1985-04-04,1,FALSE,28,0,28,"Q4",28.0000002244612,"66th"
+"NG02_TH00749","netmotss","NG02","TH00749","NY Gay Pride Parade","https://groups.google.com./g/net.motss/c/_PpZXZd6qMU",1985-07-01,1,FALSE,27,0,27,"Q4",27.0000004957341,"64th"
+"NG02_TH00452","netmotss","NG02","TH00452","Form and Substance","https://groups.google.com./g/net.motss/c/AVJqUjGjk4s",1984-10-12,4,FALSE,27,0,27,"Q4",27.0000002046702,"64th"
+"NG02_TH00981","netmotss","NG02","TH00981","A design for Living...CURRENT","https://groups.google.com./g/net.motss/c/Frm3dDOCYNQ",1986-01-23,1,FALSE,25,0,25,"Q3",25.0000000006616,"59th"
+"NG02_TH00980","netmotss","NG02","TH00980","Jason's Followup to \""It Ain't Pretty","https://groups.google.com./g/net.motss/c/4LGTKEjpz_s",1986-01-23,1,FALSE,23,0,23,"Q3",23.0000006711695,"54th"
+"NG02_TH01052","netmotss","NG02","TH01052","HTLVIII Testing","https://groups.google.com./g/net.motss/c/2q4B_NKkcnU",1986-03-19,2,FALSE,22.5,0,22.5,"Q3",22.5000007625605,"53th"
+"NG02_TH01044","netmotss","NG02","TH01044","Gay Support/Social Group Needs New Ideas","https://groups.google.com./g/net.motss/c/iGY15lAzHvU",1986-03-11,1,FALSE,22,0,22,"Q3",22.0000002227962,"52th"
+"NG02_TH00755","netmotss","NG02","TH00755","Jerry lovs ya Update","https://groups.google.com./g/net.motss/c/b3WTPIZ_ew8",1985-07-09,1,FALSE,22,0,22,"Q3",22.0000008549756,"52th"
+"NG02_TH00900","netmotss","NG02","TH00900","Getin' Satisfaction","https://groups.google.com./g/net.motss/c/xC5UJxVRRFo",1985-11-16,2,FALSE,21,0,21,"Q3",21.0000000363838,"49th"
+"NG02_TH00431","netmotss","NG02","TH00431","Reply to Byron Howes","https://groups.google.com./g/net.motss/c/5io-7FwBU1E",1984-10-06,1,FALSE,21,0,21,"Q3",21.0000009497753,"49th"
+"NG02_TH00911","netmotss","NG02","TH00911","Recent articles; homosex & science","https://groups.google.com./g/net.motss/c/I5YIBJiyahU",1985-11-20,3,FALSE,20.6666666666667,0,20.6666666666667,"Q3",20.6666673557385,"48th"
+"NG02_TH00784","netmotss","NG02","TH00784","Ohmygawd!!!","https://groups.google.com./g/net.motss/c/16INFisvzlA",1985-07-29,4,FALSE,19.5,0,19.5,"Q3",19.5000000118677,"46th"
+"NG02_TH00838","netmotss","NG02","TH00838","good Art Hoppe today...","https://groups.google.com./g/net.motss/c/Ya-CebLBzrM",1985-09-10,2,FALSE,19,0,19,"Q3",19.0000004972439,"44th"
+"NG02_TH00639","netmotss","NG02","TH00639","Comments on mail about Robert DeB's situation","https://groups.google.com./g/net.motss/c/0-E9X0jqDZg",1985-03-20,1,FALSE,19,0,19,"Q3",19.0000005958549,"44th"
+"NG02_TH00447","netmotss","NG02","TH00447","Reply to Byron Howes","https://groups.google.com./g/net.motss/c/pWOF91ChVLI",1984-10-11,2,FALSE,18.5,0,18.5,"Q3",18.5000005105517,"43th"
+"NG01_TH00697","netmed","NG01","TH00697","nonoxynol-9","https://groups.google.com./g/net.med/c/W4ls3_kojuI",1985-04-15,3,FALSE,18.3333333333333,0,18.3333333333333,"Q3",18.3333335006889,"43th"
+"NG01_TH01074","netmed","NG01","TH01074","Shift in ADIS risk groups?","https://groups.google.com./g/net.med/c/MwwcrTFpHls",1985-11-14,1,FALSE,18,0,18,"Q3",18.0000009763246,"42th"
+"NG02_TH00992","netmotss","NG02","TH00992","Generalizations about Gay Men.","https://groups.google.com./g/net.motss/c/MGdP0Y9zODI",1986-02-06,1,FALSE,18,0,18,"Q3",18.0000001828834,"42th"
+"NG02_TH00451","netmotss","NG02","TH00451","To Byron H., Ken's (re)butt!","https://groups.google.com./g/net.motss/c/LoRL9nnjJRs",1984-10-11,2,FALSE,18,0,18,"Q3",18.0000003138564,"42th"
+"NG02_TH00432","netmotss","NG02","TH00432","Reply to Andy Gerber","https://groups.google.com./g/net.motss/c/UU4sxMjJ3X8",1984-10-06,1,FALSE,18,0,18,"Q3",18.0000002941958,"42th"
+"NG02_TH00411","netmotss","NG02","TH00411","Misconceptions & Re: Gay Rights","https://groups.google.com./g/net.motss/c/7KNGTO8EdWk",1984-09-28,1,FALSE,18,0,18,"Q3",18.0000004911001,"42th"
+"NG05_TH02515","netreligion","NG05","TH02515","reply to Richard Brower","https://groups.google.com./g/net.religion/c/UWTwRxzoI68",1985-04-04,1,FALSE,18,0,18,"Q3",18.0000002933322,"42th"
+"NG02_TH00831","netmotss","NG02","TH00831","Gold war in the gay world (long but good)","https://groups.google.com./g/net.motss/c/WZApGk-jwms",1985-09-02,2,FALSE,17,0,17,"Q2",17.0000000278633,"40th"
+"NG02_TH00745","netmotss","NG02","TH00745","Some films at the SF Lesbian and Gay Film Festival","https://groups.google.com./g/net.motss/c/lTIjOHQCMU4",1985-06-27,1,FALSE,17,0,17,"Q2",17.0000002694411,"40th"
+"NG02_TH00466","netmotss","NG02","TH00466","Reply to Andy Gerber","https://groups.google.com./g/net.motss/c/2xeHhMOv_M8",1984-10-23,2,FALSE,17,0,17,"Q2",17.0000000749384,"40th"
+"NG02_TH01056","netmotss","NG02","TH01056","Antibody testing","https://groups.google.com./g/net.motss/c/nuljxyKHSO0",1986-03-20,6,FALSE,16.8333333333333,0,16.8333333333333,"Q2",16.8333341382939,"39th"
+"NG02_TH00760","netmotss","NG02","TH00760","SF Gay Freedom day report","https://groups.google.com./g/net.motss/c/b9d7L5RTkDE",1985-07-09,2,FALSE,16,0,16,"Q2",16.0000004938854,"37th"
+"NG02_TH00618","netmotss","NG02","TH00618","Homosexuality and the bible","https://groups.google.com./g/net.motss/c/MfWZuLLNtX4",1985-02-11,4,FALSE,16,0,16,"Q2",16.0000000583307,"37th"
+"NG02_TH00536","netmotss","NG02","TH00536","Keep'em Zipped up Boys","https://groups.google.com./g/net.motss/c/NN0wb2JIi-8",1984-11-30,1,FALSE,16,0,16,"Q2",16.0000009811815,"37th"
+"NG02_TH00402","netmotss","NG02","TH00402","Room for everyone????","https://groups.google.com./g/net.motss/c/dJANEQ9hdp4",1984-09-24,5,FALSE,16,0,16,"Q2",16.0000004954343,"37th"
+"NG02_TH00390","netmotss","NG02","TH00390","More defense of Ken Arndt","https://groups.google.com./g/net.motss/c/q6iiqdWzCyg",1984-09-17,1,FALSE,16,0,16,"Q2",16.0000001600866,"37th"
+"NG02_TH00360","netmotss","NG02","TH00360","A Naive Plea","https://groups.google.com./g/net.motss/c/Qsr8mRzHo1k",1984-08-28,1,FALSE,16,0,16,"Q2",16.0000005520374,"37th"
+"NG02_TH01043","netmotss","NG02","TH01043","Favorite gay-themed TV show...","https://groups.google.com./g/net.motss/c/h2Kus58lCxw",1986-03-11,1,FALSE,15,0,15,"Q2",15.0000009726573,"35th"
+"NG02_TH00944","netmotss","NG02","TH00944","\""Quick Mother, hit the n-key!\""","https://groups.google.com./g/net.motss/c/tu499t6W7UQ",1985-12-31,2,FALSE,15,0,15,"Q2",15.0000004154918,"35th"
+"NG02_TH00928","netmotss","NG02","TH00928","Nonoxynol-9","https://groups.google.com./g/net.motss/c/qTwX0OE7Ji4",1985-12-03,1,FALSE,15,0,15,"Q2",15.0000007288047,"35th"
+"NG02_TH00775","netmotss","NG02","TH00775","Movies With Gay Themes","https://groups.google.com./g/net.motss/c/KuCHPJPlGj4",1985-07-22,2,FALSE,15,0,15,"Q2",15.0000007133917,"35th"
+"NG02_TH00774","netmotss","NG02","TH00774","Looking Back","https://groups.google.com./g/net.motss/c/S5ONqpNDLIA",1985-07-22,1,FALSE,15,0,15,"Q2",15.0000008397269,"35th"
+"NG02_TH00363","netmotss","NG02","TH00363","Include her in.","https://groups.google.com./g/net.motss/c/PdOW57-6YOM",1984-08-29,1,FALSE,15,0,15,"Q2",15.000000385059,"35th"
+"NG02_TH00334","netmotss","NG02","TH00334","A perspective on rationality","https://groups.google.com./g/net.motss/c/TvpFRszwDW0",1984-08-07,1,FALSE,15,0,15,"Q2",15.0000003234234,"35th"
+"NG02_TH00547","netmotss","NG02","TH00547","Statistics on San Francisco homosexuals","https://groups.google.com./g/net.motss/c/BzROAuedoYw",1984-12-11,3,FALSE,14.6666666666667,0,14.6666666666667,"Q2",14.6666666678824,"34th"
+"NG02_TH00561","netmotss","NG02","TH00561","Ronald Reagan's Homophobic Career: VI","https://groups.google.com./g/net.motss/c/UVRzYQIH-sU",1984-12-21,3,FALSE,14.5,0,14.5,"Q2",14.5000003108665,"33th"
+"NG02_TH00182","netmotss","NG02","TH00182","Where does it stop?","https://groups.google.com./g/net.motss/c/KQ18YemU59E",1984-04-20,4,FALSE,14.5,0,14.5,"Q2",14.5000001510878,"33th"
+"NG05_TH02500","netreligion","NG05","TH02500","reply to Richard Brower","https://groups.google.com./g/net.religion/c/VjbqJR-jFhM",1985-04-02,2,FALSE,14.5,0,14.5,"Q2",14.5000001762596,"33th"
+"NG01_TH01223","netmed","NG01","TH01223","Medical Puzzle #6","https://groups.google.com./g/net.med/c/n6na0jO0yro",1986-01-23,2,FALSE,14,0,14,"Q2",14.0000007293241,"32th"
+"NG02_TH01047","netmotss","NG02","TH01047","The HTLV3 Antibody Test","https://groups.google.com./g/net.motss/c/DHZqhHGIEas",1986-03-13,1,FALSE,14,0,14,"Q2",14.0000009305155,"32th"
+"NG02_TH01018","netmotss","NG02","TH01018","Dial-A-Jerk","https://groups.google.com./g/net.motss/c/nCCeMzql4AM",1986-02-24,1,FALSE,14,0,14,"Q2",14.0000009107598,"32th"
+"NG02_TH00932","netmotss","NG02","TH00932","turning the other cheek","https://groups.google.com./g/net.motss/c/veNphCmKZBQ",1985-12-14,2,FALSE,14,0,14,"Q2",14.0000009768503,"32th"
+"NG02_TH00922","netmotss","NG02","TH00922","Safe Sex","https://groups.google.com./g/net.motss/c/yLJJC6s7e_0",1985-11-28,2,FALSE,14,0,14,"Q2",14.0000003317972,"32th"
+"NG02_TH00887","netmotss","NG02","TH00887","Celebrating Differences.","https://groups.google.com./g/net.motss/c/qbCnKGsTE5E",1985-11-05,1,FALSE,14,0,14,"Q2",14.0000004099193,"32th"
+"NG02_TH00799","netmotss","NG02","TH00799","Gay-related issues in my daily life","https://groups.google.com./g/net.motss/c/uBUH8rF4MLk",1985-08-18,2,FALSE,14,0,14,"Q2",14.0000003136423,"32th"
+"NG02_TH00725","netmotss","NG02","TH00725","SF International Lesbian and Gay Film Festival (LONG)","https://groups.google.com./g/net.motss/c/d6MJRvBxBsM",1985-06-12,1,FALSE,14,0,14,"Q2",14.0000008476556,"32th"
+"NG02_TH00702","netmotss","NG02","TH00702","A.I.D.S.","https://groups.google.com./g/net.motss/c/_O83-v57CkU",1985-05-08,1,FALSE,14,0,14,"Q2",14.0000005729324,"32th"
+"NG02_TH00540","netmotss","NG02","TH00540","Ronald Reagan's Homophobic Career: VIII","https://groups.google.com./g/net.motss/c/RxVm6EwWtOY",1984-12-03,9,FALSE,14,0,14,"Q2",14.0000008062485,"32th"
+"NG02_TH00509","netmotss","NG02","TH00509","Massachusetts laws and court cases related to lesbians and gays (LONG!!!)","https://groups.google.com./g/net.motss/c/Uxy1u3V5evw",1984-11-13,1,FALSE,14,0,14,"Q2",14.000000019789,"32th"
+"NG02_TH00145","netmotss","NG02","TH00145","Coming out","https://groups.google.com./g/net.motss/c/Fw8WSR2dI1g",1984-02-07,1,FALSE,14,0,14,"Q2",14.0000006452292,"32th"
+"NG04_TH03748","netpolitics","NG04","TH03748","Robert Thau's dishonest references","https://groups.google.com./g/net.politics/c/ngBN_hLbRGc",1985-12-30,1,FALSE,14,0,14,"Q2",14.0000004930012,"32th"
+"NG04_TH01406","netpolitics","NG04","TH01406","The Falwellite Frenzy","https://groups.google.com./g/net.politics/c/rCrLVW7ImCY",1984-03-24,6,FALSE,14,0,14,"Q2",14.0000003624226,"32th"
+"NG06_TH03168","netsingles","NG06","TH03168","Saving Lives","https://groups.google.com./g/net.singles/c/De20yQjf2eQ",1985-11-25,8,FALSE,14,0,14,"Q2",14.0000005989574,"32th"
+"NG02_TH00357","netmotss","NG02","TH00357","Serpent in Paradise","https://groups.google.com./g/net.motss/c/fx91yGF5YjY",1984-08-24,7,FALSE,13.6666666666667,0,13.6666666666667,"Q2",13.6666667987746,"31th"
+"NG01_TH00578","netmed","NG01","TH00578","Non-A Non-B Hepatitis ????","https://groups.google.com./g/net.med/c/aQnNOF203vE",1985-01-14,3,FALSE,13.5,0,13.5,"Q2",13.5000003592429,"31th"
+"NG02_TH00915","netmotss","NG02","TH00915","Cold War Within the Gay Community - article excerpts re-posted","https://groups.google.com./g/net.motss/c/X-v807XtqxQ",1985-11-22,2,FALSE,13.5,0,13.5,"Q2",13.5000001969665,"31th"
+"NG02_TH00496","netmotss","NG02","TH00496","Ronald Reagan's homophobic career: V","https://groups.google.com./g/net.motss/c/kfKdT83dZUs",1984-11-06,2,FALSE,13.5,0,13.5,"Q2",13.5000002163784,"31th"
+"NG02_TH00232","netmotss","NG02","TH00232","publish & panic","https://groups.google.com./g/net.motss/c/0FM1onCTUlU",1984-06-14,3,FALSE,13.5,0,13.5,"Q2",13.5000002362143,"31th"
+"NG01_TH01033","netmed","NG01","TH01033","legal definition of practice of medicine","https://groups.google.com./g/net.med/c/FYtfw9w2ypM",1985-10-24,17,FALSE,13,0,13,"Q2",13.0000002957963,"30th"
+"NG02_TH00961","netmotss","NG02","TH00961","Ahhh, . . . mmmm . . . a question.","https://groups.google.com./g/net.motss/c/Rf_4qwJaTto",1986-01-12,1,FALSE,13,0,13,"Q2",13.0000008091388,"30th"
+"NG02_TH00923","netmotss","NG02","TH00923","New York anti-sex laws - newspaper article","https://groups.google.com./g/net.motss/c/E1QoPUSBBwg",1985-11-28,3,FALSE,13,0,13,"Q2",13.0000005209395,"30th"
+"NG02_TH00811","netmotss","NG02","TH00811","Current PR","https://groups.google.com./g/net.motss/c/UvCGfB6T9CE",1985-08-22,1,FALSE,13,0,13,"Q2",13.0000001445126,"30th"
+"NG02_TH00732","netmotss","NG02","TH00732","1985 Pride Parade","https://groups.google.com./g/net.motss/c/z-e_AEvED1I",1985-06-18,2,FALSE,13,0,13,"Q2",13.0000006594467,"30th"
+"NG02_TH00622","netmotss","NG02","TH00622","Jason on Bad Relationships","https://groups.google.com./g/net.motss/c/jEiUB6g9h84",1985-02-15,2,FALSE,13,0,13,"Q2",13.0000000775453,"30th"
+"NG02_TH00141","netmotss","NG02","TH00141","forwarded message","https://groups.google.com./g/net.motss/c/djXL7oCZNtA",1984-02-03,1,FALSE,13,0,13,"Q2",13.0000003999174,"30th"
+"NG04_TH03934","netpolitics","NG04","TH03934","Political Quote of the Month","https://groups.google.com./g/net.politics/c/1ed28EDhXjw",1986-03-02,6,FALSE,13,0,13,"Q2",13.0000002587167,"30th"
+"NG05_TH02958","netreligion","NG05","TH02958","Auto-dialing Falwell","https://groups.google.com./g/net.religion/c/Ud3pZ3Vpssw",1986-01-29,6,FALSE,13,0,13,"Q2",13.0000006134473,"30th"
+"NG05_TH00831","netreligion","NG05","TH00831","homosexuality","https://groups.google.com./g/net.religion/c/l-fOILY8ZAI",1983-11-23,3,FALSE,12.3333333333333,0,12.3333333333333,"Q2",12.3333333466698,"28th"
+"NG02_TH01020","netmotss","NG02","TH01020","More on Stereotypes/gays in Film","https://groups.google.com./g/net.motss/c/BRejeD2xzNM",1986-02-25,1,FALSE,12,0,12,"Q2",12.0000005515703,"27th"
+"NG02_TH00867","netmotss","NG02","TH00867","Poor 'O' (a net.liberal)- Up a tree and barked at!","https://groups.google.com./g/net.motss/c/xw9YsSZTexI",1985-10-08,1,FALSE,12,0,12,"Q2",12.0000007743479,"27th"
+"NG02_TH00826","netmotss","NG02","TH00826","a funny thing","https://groups.google.com./g/net.motss/c/jnSwGvMKB24",1985-08-31,1,FALSE,12,0,12,"Q2",12.0000003234431,"27th"
+"NG02_TH00429","netmotss","NG02","TH00429","Close to next to last reply to Andrew Gerber","https://groups.google.com./g/net.motss/c/ADMLvH5TmAc",1984-10-05,1,FALSE,12,0,12,"Q2",12.0000005533176,"27th"
+"NG04_TH03069","netpolitics","NG04","TH03069","Living With Bitburg (A followup)","https://groups.google.com./g/net.politics/c/ki7h4tzSeuc",1985-05-24,2,FALSE,12,0,12,"Q2",12.0000006457908,"27th"
+"NG04_TH02966","netpolitics","NG04","TH02966","A Question of Mentors (No joke, kids, I'm angry this time)","https://groups.google.com./g/net.politics/c/TBwZrLbH7LY",1985-04-25,1,FALSE,12,0,12,"Q2",12.0000004799296,"27th"
+"NG02_TH00664","netmotss","NG02","TH00664","another Egypt","https://groups.google.com./g/net.motss/c/ujw0HcMbmxw",1985-04-05,3,FALSE,11.5,0,11.5,"Q2",11.5000009627227,"26th"
+"NG02_TH00520","netmotss","NG02","TH00520","Multiple Languages on Usenet","https://groups.google.com./g/net.motss/c/B8tMySA8FS0",1984-11-24,3,FALSE,11.5,0,11.5,"Q2",11.5000002707351,"26th"
+"NG02_TH01040","netmotss","NG02","TH01040","Movie Review: Parting Glances","https://groups.google.com./g/net.motss/c/G6KNB9vfvX0",1986-03-09,1,FALSE,11,0,11,"Q2",11.0000004997254,"25th"
+"NG02_TH01023","netmotss","NG02","TH01023","godd things from net.rumor","https://groups.google.com./g/net.motss/c/I9GbX7z_XlE",1986-02-28,1,FALSE,11,0,11,"Q2",11.0000008867655,"25th"
+"NG02_TH00955","netmotss","NG02","TH00955","Dating?","https://groups.google.com./g/net.motss/c/j-Nis-M1Ymc",1986-01-09,4,FALSE,11,0,11,"Q2",11.0000004188492,"25th"
+"NG02_TH00954","netmotss","NG02","TH00954","A close call indeed!!!","https://groups.google.com./g/net.motss/c/faxIR5LV48g",1986-01-08,2,FALSE,11,0,11,"Q2",11.000000899109,"25th"
+"NG02_TH00919","netmotss","NG02","TH00919","Saving Lives","https://groups.google.com./g/net.motss/c/De20yQjf2eQ",1985-11-25,9,FALSE,11,0,11,"Q2",11.0000000144946,"25th"
+"NG02_TH00804","netmotss","NG02","TH00804","Conservatism in the Gay Cause","https://groups.google.com./g/net.motss/c/xtdYp0f-DcU",1985-08-20,1,FALSE,11,0,11,"Q2",11.0000004493031,"25th"
+"NG02_TH00798","netmotss","NG02","TH00798","A straight married female's view: anonymous posting","https://groups.google.com./g/net.motss/c/mCAeOBg2_no",1985-08-18,2,FALSE,11,0,11,"Q2",11.000000597281,"25th"
+"NG02_TH00768","netmotss","NG02","TH00768","Recent reading","https://groups.google.com./g/net.motss/c/VhcUeKLYtdQ",1985-07-17,2,FALSE,11,0,11,"Q2",11.0000002755063,"25th"
+"NG02_TH00703","netmotss","NG02","TH00703","Info wanted (didn't listen to NPR)","https://groups.google.com./g/net.motss/c/O7V8i1XjbaA",1985-05-10,1,FALSE,11,0,11,"Q2",11.0000004943688,"25th"
+"NG02_TH00645","netmotss","NG02","TH00645","More on ""Forumo"", an international gay newsletter","https://groups.google.com./g/net.motss/c/qzock90XezI",1985-03-26,1,FALSE,11,0,11,"Q2",11.0000004167773,"25th"
+"NG02_TH00553","netmotss","NG02","TH00553","Biological basis for homosexuality","https://groups.google.com./g/net.motss/c/ddCmjxbEohc",1984-12-13,1,FALSE,11,0,11,"Q2",11.0000007185276,"25th"
+"NG02_TH00479","netmotss","NG02","TH00479","A Gay Flame","https://groups.google.com./g/net.motss/c/ZD4TEEejyYA",1984-10-30,1,FALSE,11,0,11,"Q2",11.0000001244179,"25th"
+"NG02_TH00417","netmotss","NG02","TH00417","Gay Political/Social Groups in Los Angeles","https://groups.google.com./g/net.motss/c/0-b9Cnn7rLA",1984-10-01,1,FALSE,11,0,11,"Q2",11.0000000680788,"25th"
+"NG02_TH00274","netmotss","NG02","TH00274","Now that the dust has settled and the smoke has cleared...","https://groups.google.com./g/net.motss/c/DN1zQKo_Jqc",1984-07-06,1,FALSE,11,0,11,"Q2",11.0000008982732,"25th"
+"NG03_TH02022","netnews","NG03","TH02022","What newsgroups are *really* needed?","https://groups.google.com./g/net.news/c/jMSTcPUZrAs",1985-10-05,10,FALSE,11,0,11,"Q2",11.0000000509212,"25th"
+"NG04_TH03440","netpolitics","NG04","TH03440","Secular Devilism","https://groups.google.com./g/net.politics/c/IQAA-SSqQgQ",1985-09-11,1,FALSE,11,0,11,"Q2",11.0000008859898,"25th"
+"NG04_TH03310","netpolitics","NG04","TH03310","Seat Belts","https://groups.google.com./g/net.politics/c/3IzYISzwh2M",1985-08-05,22,FALSE,11,0,11,"Q2",11.0000007193791,"25th"
+"NG05_TH01832","netreligion","NG05","TH01832","Arndt undressed!","https://groups.google.com./g/net.religion/c/Jh8ZEGTCPL4",1984-10-08,1,FALSE,11,0,11,"Q2",11.0000009459875,"25th"
+"NG06_TH03499","netsingles","NG06","TH03499","Commission on Pornography -- reply to GWSmith","https://groups.google.com./g/net.singles/c/CofFgK-IsDs",1986-09-16,2,FALSE,11,0,11,"Q2",11.0000000535722,"25th"
+"NG06_TH02745","netsingles","NG06","TH02745","dancing and singles' bars","https://groups.google.com./g/net.singles/c/XFRpVIemNyk",1985-06-04,6,FALSE,11,0,11,"Q2",11.0000006829138,"25th"
+"NG06_TH02179","netsingles","NG06","TH02179","first {mod,net}.singles reader survey results!","https://groups.google.com./g/net.singles/c/IpcW4LW6vfU",1984-12-23,1,FALSE,11,0,11,"Q2",11.0000004495821,"25th"
+"NG06_TH01589","netsingles","NG06","TH01589","A different subject","https://groups.google.com./g/net.singles/c/akpZnBMUfLY",1984-07-19,1,FALSE,11,0,11,"Q2",11.0000008171835,"25th"
+"NG06_TH01492","netsingles","NG06","TH01492","enough","https://groups.google.com./g/net.singles/c/CsGPlwrHctM",1984-07-06,2,FALSE,11,0,11,"Q2",11.0000003427149,"25th"
+"NG01_TH00912","netmed","NG01","TH00912","The topics that were requested...","https://groups.google.com./g/net.med/c/P8xpk_QdSLU",1985-08-29,11,FALSE,10.6666666666667,0,10.6666666666667,"Q2",10.6666673025802,"24th"
+"NG02_TH00415","netmotss","NG02","TH00415","Richard Johnson: Let's talk Apple to Apple!","https://groups.google.com./g/net.motss/c/ZaBWQXYIb-Q",1984-10-01,2,FALSE,10.5,0,10.5,"Q2",10.5000005008185,"24th"
+"NG01_TH00769","netmed","NG01","TH00769","Herbalife International diet drugs attacked.","https://groups.google.com./g/net.med/c/PJ8Vnse5Bmo",1985-07-02,5,FALSE,10.3333333333333,0,10.3333333333333,"Q2",10.3333335391394,"23th"
+"NG01_TH01435","netmed","NG01","TH01435","Laryngectomee Rehabilitation: Info request","https://groups.google.com./g/net.med/c/usfzrpYf9ZU",1986-10-18,1,FALSE,10,0,10,"Q2",10.0000008112673,"22th"
+"NG01_TH01420","netmed","NG01","TH01420","AIDS","https://groups.google.com./g/net.med/c/JVvLCQ24_jc",1986-09-24,3,TRUE,11.6666666666667,10,10,"Q2",10.0000002603315,"22th"
+"NG01_TH01411","netmed","NG01","TH01411","AIDS posting","https://groups.google.com./g/net.med/c/x0t_ee4RnlE",1986-09-11,1,TRUE,10,10,10,"Q2",10.0000006034055,"22th"
+"NG01_TH01407","netmed","NG01","TH01407","Interesting AIDS fact","https://groups.google.com./g/net.med/c/bHCzTh7InXg",1986-07-30,1,TRUE,13,10,10,"Q2",10.0000007362223,"22th"
+"NG01_TH01403","netmed","NG01","TH01403","Evolutionary advantage of Excess Brain matter","https://groups.google.com./g/net.med/c/9or8jOUMWJc",1986-05-21,3,FALSE,10,0,10,"Q2",10.0000002037555,"22th"
+"NG01_TH01369","netmed","NG01","TH01369","What do you go to chiropractors for?","https://groups.google.com./g/net.med/c/Dz4ak_nyvFo",1986-03-20,6,FALSE,10,0,10,"Q2",10.0000002935899,"22th"
+"NG01_TH01352","netmed","NG01","TH01352","AIDS and RE: The worst (hist.) surgical proc.","https://groups.google.com./g/net.med/c/sI1ETPXOpyc",1986-03-12,12,TRUE,9.5,10,10,"Q2",10.0000002667764,"22th"
+"NG01_TH01305","netmed","NG01","TH01305","Medical Puzzler #8898?","https://groups.google.com./g/net.med/c/QaGfb2HaorY",1986-02-26,1,FALSE,10,0,10,"Q2",10.000000506027,"22th"
+"NG01_TH01264","netmed","NG01","TH01264","Shameful Statistics","https://groups.google.com./g/net.med/c/duEOEKkQpMk",1986-02-10,8,FALSE,10,0,10,"Q2",10.0000004871495,"22th"
+"NG01_TH01259","netmed","NG01","TH01259","AIDS budget cut proposal","https://groups.google.com./g/net.med/c/vTrrcpv0RUA",1986-02-06,1,TRUE,10,10,10,"Q2",10.0000003583236,"22th"
+"NG01_TH01231","netmed","NG01","TH01231","January is National Volunteer Blood Donor Month.","https://groups.google.com./g/net.med/c/2uD5s_b9Vmc",1986-01-28,9,FALSE,10,0,10,"Q2",10.0000000434384,"22th"
+"NG01_TH01230","netmed","NG01","TH01230","AIDS Incidence in perspective","https://groups.google.com./g/net.med/c/1ARcUmBKZ10",1986-01-28,1,TRUE,11,10,10,"Q2",10.0000002995189,"22th"
+"NG01_TH01164","netmed","NG01","TH01164","On meeting someone with AIDS","https://groups.google.com./g/net.med/c/mjsT7OncThg",1986-01-03,1,TRUE,14,10,10,"Q2",10.0000002265463,"22th"
+"NG01_TH01157","netmed","NG01","TH01157","AIDS Research - Antiviral Drugs (Query)?","https://groups.google.com./g/net.med/c/zTIyZZtv2fA",1985-12-23,7,TRUE,18.2857142857143,10,10,"Q2",10.0000005602578,"22th"
+"NG01_TH01117","netmed","NG01","TH01117","prevention of aids","https://groups.google.com./g/net.med/c/06JJZSw6Oz8",1985-12-04,1,TRUE,10,10,10,"Q2",10.0000005504233,"22th"
+"NG01_TH01115","netmed","NG01","TH01115","Answer to AIDS questions","https://groups.google.com./g/net.med/c/5cgl9ZU_E2g",1985-12-03,6,TRUE,14,10,10,"Q2",10.0000007242098,"22th"
+"NG01_TH01106","netmed","NG01","TH01106","a stupid question about lupus and AIDS","https://groups.google.com./g/net.med/c/oU7RSM2COlE",1985-11-25,1,TRUE,10,10,10,"Q2",10.0000009373958,"22th"
+"NG01_TH01101","netmed","NG01","TH01101","Possible Good News about AIDS?","https://groups.google.com./g/net.med/c/PKhA-E7TCOo",1985-11-23,1,TRUE,13,10,10,"Q2",10.0000007353875,"22th"
+"NG01_TH01089","netmed","NG01","TH01089","A Tale of Two Diseases.","https://groups.google.com./g/net.med/c/7r0uDYUi4Y4",1985-11-20,8,FALSE,10,0,10,"Q2",10.0000008693225,"22th"
+"NG01_TH01079","netmed","NG01","TH01079","AIDS in Africa: a newspaper editorial","https://groups.google.com./g/net.med/c/GSscEgGnBcA",1985-11-16,2,TRUE,27.5,10,10,"Q2",10.0000008822612,"22th"
+"NG01_TH01071","netmed","NG01","TH01071","Scary thought about AIDS","https://groups.google.com./g/net.med/c/RjaQzfsldbQ",1985-11-12,5,TRUE,14.4,10,10,"Q2",10.0000007617792,"22th"
+"NG01_TH01063","netmed","NG01","TH01063","RP","https://groups.google.com./g/net.med/c/Ndvoi8JErD8",1985-11-09,1,FALSE,10,0,10,"Q2",10.0000003882047,"22th"
+"NG01_TH01060","netmed","NG01","TH01060","FDA and WSJ","https://groups.google.com./g/net.med/c/wcS3tSUBy8g",1985-11-08,1,FALSE,10,0,10,"Q2",10.0000009120338,"22th"
+"NG01_TH01030","netmed","NG01","TH01030","AIDS transmission (not easy to come by)","https://groups.google.com./g/net.med/c/RBVQ99n7o6I",1985-10-22,2,TRUE,11,10,10,"Q2",10.0000001947509,"22th"
+"NG01_TH01028","netmed","NG01","TH01028","AIDS: beyond high-risk groups","https://groups.google.com./g/net.med/c/0giK_GQ_-XY",1985-10-21,19,TRUE,13.9473684210526,10,10,"Q2",10.000000729056,"22th"
+"NG01_TH01025","netmed","NG01","TH01025","Aids screening","https://groups.google.com./g/net.med/c/DYfYNNI61YM",1985-10-21,1,TRUE,10,10,10,"Q2",10.0000001526609,"22th"
+"NG01_TH01022","netmed","NG01","TH01022","In Support of Hazards of Amalgams (the question of references)","https://groups.google.com./g/net.med/c/h9qDftUr_3g",1985-10-19,25,FALSE,10,0,10,"Q2",10.0000004075873,"22th"
+"NG01_TH01017","netmed","NG01","TH01017","AIDS: Casual contact exonerated","https://groups.google.com./g/net.med/c/a0hVZmyMBiA",1985-10-16,1,TRUE,23,10,10,"Q2",10.0000004268256,"22th"
+"NG01_TH01016","netmed","NG01","TH01016","Being sensible about AIDS transmission","https://groups.google.com./g/net.med/c/Yx6HXihhKPM",1985-10-16,3,TRUE,10,10,10,"Q2",10.0000001984261,"22th"
+"NG01_TH01015","netmed","NG01","TH01015","Update on AIDS and Health Care Workers.","https://groups.google.com./g/net.med/c/Z4GcqGYKPfY",1985-10-16,2,TRUE,13.5,10,10,"Q2",10.0000002851627,"22th"
+"NG01_TH01001","netmed","NG01","TH01001","Politics of AIDS, of Foster Care","https://groups.google.com./g/net.med/c/NB_zOSZvP_E",1985-10-03,16,TRUE,17.9166666666667,10,10,"Q2",10.0000001706748,"22th"
+"NG01_TH00954","netmed","NG01","TH00954","Politics of AIDS - military testing","https://groups.google.com./g/net.med/c/Dto2-30mKU8",1985-09-12,1,TRUE,19,10,10,"Q2",10.000000795131,"22th"
+"NG01_TH00944","netmed","NG01","TH00944","Phagocytic Index and Sugar---some hard data","https://groups.google.com./g/net.med/c/SyMIpP4a9vg",1985-09-07,1,FALSE,10,0,10,"Q2",10.0000005963506,"22th"
+"NG01_TH00942","netmed","NG01","TH00942","Personal Revelation about AIDS","https://groups.google.com./g/net.med/c/fjV21T5IOmg",1985-09-06,1,TRUE,14,10,10,"Q2",10.0000008326212,"22th"
+"NG01_TH00875","netmed","NG01","TH00875","AIDS Transmission (Addendum)","https://groups.google.com./g/net.med/c/mOyXcZB48N8",1985-08-20,7,TRUE,10.75,10,10,"Q2",10.0000005801631,"22th"
+"NG01_TH00872","netmed","NG01","TH00872","Proof that AIDS can be transmitted by Semen","https://groups.google.com./g/net.med/c/82jkWkwWkyk",1985-08-20,1,TRUE,16,10,10,"Q2",10.0000006875172,"22th"
