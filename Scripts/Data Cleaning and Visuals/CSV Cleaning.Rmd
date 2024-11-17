@@ -81,23 +81,26 @@ newsgroup_ids <- c("netmed" = "NG01", "netmotss" = "NG02", "netnews" = "NG03",
 
 # Threads cleaning
 all_threads <- all_threads %>%
-  mutate(newsgroup_ID = factor(newsgroup, levels = names(newsgroup_ids), labels = newsgroup_ids),
-         Unique_ThreadID = paste(newsgroup_ID, ThreadID, sep = "_")) %>%
-  rename(NG_Relative_ThreadID = ThreadID) %>%
-  select(Unique_ThreadID, newsgroup, newsgroup_ID, everything()) %>%
+  mutate(NG_ID = factor(newsgroup, levels = names(newsgroup_ids), labels = newsgroup_ids),
+         NG_TH_ID = paste(NG_ID, ThreadID, sep = "_")) %>%
+  rename(TH_ID = ThreadID) %>%
+  select(NG_TH_ID, TH_ID, NG_ID, everything()) %>%
   mutate(Date = as.Date(Date, format = "%m/%d/%y"))
 
 # Comments cleaning
 all_comments <- all_comments %>%
-  mutate(newsgroup_ID = factor(newsgroup, levels = names(newsgroup_ids), labels = newsgroup_ids),
-         Unique_CommentID = paste(newsgroup_ID, Unique.Comment.ID, sep = "_"),
-         NG_Relative_CommentID = Unique.Comment.ID,
-         NG_Relative_ThreadID = Thread.ID,
-         Thread.ID = paste(newsgroup_ID, Thread.ID, sep = "_")) %>%
-  select(Unique_CommentID, newsgroup, newsgroup_ID, Thread.ID, NG_Relative_CommentID, NG_Relative_ThreadID, everything()) %>%
+    rename(        
+        TH_CM_ID = Unique.Comment.ID,
+        TH_ID = Thread.ID,
+        CM_ID = Comment.ID) %>%
+  mutate(NG_ID = factor(newsgroup, levels = names(newsgroup_ids), labels = newsgroup_ids),
+         NG_TH_CM_ID = paste(NG_ID, TH_CM_ID, sep = "_"),
+         NG_TH_ID = paste(NG_ID, TH_ID, sep = "_")) %>%
+  select(NG_TH_CM_ID, NG_TH_ID, TH_CM_ID, CM_ID, TH_ID, NG_ID, everything()) %>%
   mutate(Date.and.Time = as.POSIXct(gsub("[^[:alnum:] [:punct:]]", "", Date.and.Time), format = "%b %d, %Y, %I:%M:%S%p"),
          Hour = as.numeric(format(Date.and.Time, "%H")),
          Date = as.Date(Date.and.Time))
+         
 
 # Replace mentions of specific authors
 all_comments <- all_comments %>%
@@ -106,6 +109,8 @@ all_comments <- all_comments %>%
       Author == "SEVENER" ~ "Tim Sevener",
       Author == "The Polymath" ~ "Jerry Hollombe",
       Author == "fau...@ucbcad.uucp" ~ "Wayne A. Christopher",
+      Author == "bi...@persci.uucp" ~ "Bill Swan",
+      Author == "wer...@aecom.uucp" ~ "Craig Werner",
       TRUE ~ Author # Retain other authors as-is
     )
   )
@@ -114,159 +119,43 @@ all_comments <- all_comments %>%
 all_comments <- all_comments %>%
   mutate(SentimentScore = get_sentiment(Full.Text, method = "afinn"))
 
-# Remove Duplicates
-all_comments <- all_comments %>%
-  distinct(Full.Text, .keep_all = TRUE)
-
 write.csv(all_threads, file.path(threads_directory, "dataset1_threads.csv"), row.names = FALSE)
 write.csv(all_comments, file.path(comments_directory, "dataset1_comments.csv"), row.names = FALSE)
 ```
 
-## Dataset 2 - AIDS-Related Comments (1982–1986)
-```{r Filtering by Keywords with Weighted Groupsand to between 1982-1986}
-# Load libraries
-library(dplyr)
-library(stringr)
+## Dataset 2 - AIDS-Related Comments, as Determined by Titles (1982–1986)
+```{r Title Based Filtering}
+# Define AIDS-related keywords
+aids_keywords <- c("aids", "acquired immune deficiency syndrome", "human immunodeficiency virus", 
+  "gay-related immune deficiency", "gay plague",
+  "hiv", "htlv", "human t-lymphotropic virus", "gay cancer", "kaposi's sarcoma",
+  "slim disease", "pneumocystis pneumonia", "gay disease", "homosexual disease")
 
-# Step 1: Define grouped keywords with weights
-keyword_groups <- list(
-  `10` = c("aids", "acquired immune deficiency syndrome", "human immunodeficiency virus", "gay-related immune deficiency", "gay plague"),
-  `9` = c("hiv", "htlv", "human t-lymphotropic virus", "gay cancer", "kaposi's sarcoma"),
-  `8` = c("slim disease", "pneumocystis pneumonia", "gay disease", "homosexual disease", "immune disease"),
-  `7` = c("fag cancer", "homosexual cancer", "gay compromise syndrome", "aids hysteria"),
-  `6` = c("gay fear", "fear of gay", "fear of homosexual", "gay panic", "queer disease", "pink disease"),
-  `5` = c("sexual orientation disease", "sexual deviant disease", "patients", "carriers"),
-  `4` = c("bisexual", "gay/bisexual", "gay men", "homosexuals", "gay sex", "homophobia"),
-  `3` = c("virus", "syndrome", "pandemic", "blood disease", "blood test", "sexual transmission"),
-  `2` = c("sodomy", "bathhouses", "promiscuity", "gay community", "homosexual acts", "infection", "epidemic"),
-  `1` = c("sex", "queer", "gays", "lesbians", "lifestyle", "contagion", 
-          "unsafe practices")
-)
-
-# Combine all keywords into a single named vector with weights
-keyword_weights <- unlist(lapply(names(keyword_groups), function(weight) {
-  setNames(rep(as.numeric(weight), length(keyword_groups[[weight]])), keyword_groups[[weight]])
-}))
-
-# Define title keywords with weights (subset of `keyword_weights`)
-title_keyword_weights <- keyword_weights[names(keyword_weights) %in% c(
-  "aids", "htlv", "hiv", "acquired immune deficiency syndrome",
-  "human immunodeficiency virus", "gay plague", "gay cancer",
-  "kaposi's sarcoma", "pneumocystis pneumonia", "homosexual disease",
-  "gay disease"
-)]
-
-# Step 2: Filter threads and comments for the desired period
+# Step 1: Filter threads by `Thread.Title` containing AIDS-related keywords
 relevant_threads <- all_threads %>%
-  filter(Date >= as.Date("1981-12-01") & Date < as.Date("1987-03-01"))
+  filter(str_detect(tolower(Thread.Title), paste(tolower(aids_keywords), collapse = "|")))
 
-# Step 3: Add relevancy scores to comments
-match_keywords <- function(text, keywords, weights) {
-  if (is.na(text)) return(0)
-  text <- tolower(text)
-  sum(sapply(names(keywords), function(kw) {
-    if (!is.na(str_detect(text, paste0("\\b", kw, "\\b"))) && 
-        str_detect(text, paste0("\\b", kw, "\\b"))) {
-      return(weights[kw])
-    } else {
-      return(0)
-    }
-  }))
-}
+# Step 2: Get `NG_TH_ID`s for relevant threads
+relevant_thread_ids <- relevant_threads$NG_TH_ID
 
-comments_with_relevancy <- all_comments %>%
-  filter(Date >= as.Date("1981-12-01") & Date < as.Date("1987-03-01")) %>%
-  rowwise() %>%
-  mutate(Relevancy = match_keywords(Full.Text, keyword_weights, keyword_weights)) %>%
-  filter(Relevancy > 0)
-
-# Step 4: Identify relevant threads
-relevant_threads <- relevant_threads %>%
-  mutate(
-    TitleHasKeyword = sapply(Thread.Title, function(title) {
-      if (is.na(title)) return(0)
-      sum(sapply(names(title_keyword_weights), function(kw) {
-        if (!is.na(str_detect(tolower(title), paste0("\\b", kw, "\\b"))) &&
-            str_detect(tolower(title), paste0("\\b", kw, "\\b"))) {
-          return(title_keyword_weights[kw])
-        } else {
-          return(0)
-        }
-      }))
-    }) > 0
-  ) %>%
-  filter(Unique_ThreadID %in% comments_with_relevancy$Thread.ID | TitleHasKeyword)
-
-# Step 5: Capture all comments in relevant threads
+# Step 3: Filter comments associated with these threads
 relevant_comments <- all_comments %>%
-  filter(Thread.ID %in% relevant_threads$Unique_ThreadID) %>%
-  mutate(
-    Relevancy = sapply(Full.Text, function(text) {
-      match_keywords(text, keyword_weights, keyword_weights)
-    })
-  )
+  filter(NG_TH_ID %in% relevant_thread_ids)
 
-# Step 6: Calculate thread-level relevancy
-thread_relevancy <- comments_with_relevancy %>%
-  group_by(Thread.ID) %>%
-  summarise(
-    AvgCommentRelevancy = mean(Relevancy, na.rm = TRUE)  # Average score per relevant comment
-  ) %>%
-  mutate(
-    TitleRelevancy = relevant_threads$TitleHasKeyword[match(Thread.ID, relevant_threads$Unique_ThreadID)] * 10,
-    ThreadRelevancyScore = ifelse(TitleRelevancy == 10, 10, AvgCommentRelevancy + TitleRelevancy)  # Prioritize threads with relevant titles
-  )
-
-# Step 7: Merge back thread relevancy into relevant_threads
-relevant_threads <- relevant_threads %>%
-  left_join(thread_relevancy, by = c("Unique_ThreadID" = "Thread.ID"))
-
-# Step 8: Save the updated datasets
 write.csv(relevant_threads, file.path(threads_directory, "dataset2_threads.csv"), row.names = FALSE)
 write.csv(relevant_comments, file.path(comments_directory, "dataset2_comments.csv"), row.names = FALSE)
-
-# Print specified statistics
-cat("Number of threads after filtering:", nrow(relevant_threads), "\n")
-cat("Number of comments after filtering:", nrow(relevant_comments), "\n")
 ```
 
-## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quintile of Relevancy Scores
-```{r Calculate Quintiles and Box Plot}
-filtered_relevant_threads <- relevant_threads %>%
-  arrange(desc(ThreadRelevancyScore)) %>%  # Sort by relevancy score in descending order
-  slice(1:150)  # Select the top 100 threads
-
-filtered_relevant_comments <- relevant_comments %>%
-  semi_join(filtered_relevant_threads, by = c("Thread.ID" = "Unique_ThreadID"))
-
-# Save filtered datasets
-write.csv(filtered_relevant_threads, 
-          file.path(threads_directory, "dataset3_threads.csv"), 
-          row.names = FALSE)
-write.csv(filtered_relevant_comments, 
-          file.path(comments_directory, "dataset3_comments.csv"), 
-          row.names = FALSE)
-
-# Print specified statistics
-cat("Number of threads after filtering:", nrow(filtered_relevant_threads), "\n")
-cat("Number of comments after filtering:", nrow(filtered_relevant_comments), "\n")
-```
-
-## Dataset 4 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartiles of Relevancy Scores and for Only Influential Authors Comments and Threads
+## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered By Influential Authors Comments 
 ```{r Identify Influential Authors}
 # Load required libraries
 library(dplyr)
 library(igraph)
 
-# Step 1: Filter comments in the top 16th percentile threads
-# Ensure `filtered_relevant_comments` only includes comments from top 16th percentile threads
-filtered_relevant_comments <- filtered_relevant_comments %>%
-  filter(Thread.ID %in% filtered_relevant_threads$Unique_ThreadID)
-
 # Step 2: Create an author co-participation network
-author_pairs <- filtered_relevant_comments %>%
-  filter(!is.na(Thread.ID)) %>%
-  group_by(Thread.ID) %>%
+author_pairs <- relevant_comments %>%
+  filter(!is.na(TH_ID)) %>%
+  group_by(TH_ID) %>%
   summarise(
     Pairs = list(if (length(unique(Author)) > 1) {
       as.data.frame(t(combn(unique(Author), 2)))
@@ -294,7 +183,7 @@ influential_authors <- data.frame(
   head(20) # Select the top 20 influential authors
 
 # Save the list of influential authors
-write.csv(influential_authors, file.path(output_directory, "/CSV Files/influential_authors.csv"), row.names = FALSE)
+write.csv(influential_authors, file.path(output_directory, "CSV Files", "influential_authors.csv"), row.names = FALSE)
 
 # Print the top influential authors
 print(influential_authors)
@@ -302,26 +191,26 @@ print(influential_authors)
 
 ```{r Influential Authors Comments and Threads}
 # Step 5: Filter comments authored by influential authors
-influential_author_comments <- filtered_relevant_comments %>%
+influential_author_comments <- relevant_comments %>%
   filter(Author %in% influential_authors$Author)
 
 # Step 6: Identify threads with at least one influential author
-influential_threads <- filtered_relevant_threads %>%
-  filter(Unique_ThreadID %in% influential_author_comments$Thread.ID)
+influential_threads <- relevant_threads %>%
+  filter(NG_TH_ID %in% influential_author_comments$NG_TH_ID)
 
 # Step 7: Include all comments in threads with influential authors
-all_comments_in_influential_threads <- filtered_relevant_comments %>%
-  filter(Thread.ID %in% influential_threads$Unique_ThreadID)
+all_comments_in_influential_threads <- relevant_comments %>%
+  filter(NG_TH_ID %in% influential_threads$NG_TH_ID)
 
 # Step 8: Save the final datasets
 write.csv(influential_threads, 
-          file.path(threads_directory, "dataset4_threads.csv"), 
+          file.path(threads_directory, "dataset3_threads.csv"), 
           row.names = FALSE)
 write.csv(all_comments_in_influential_threads, 
-          file.path(comments_directory, "dataset4_comments_all.csv"), 
+          file.path(comments_directory, "dataset3_comments_all.csv"), 
           row.names = FALSE)
 write.csv(influential_author_comments, 
-          file.path(comments_directory, "dataset4_comments_onlyinfluential.csv"), 
+          file.path(comments_directory, "dataset3_comments_onlyinfluential.csv"), 
           row.names = FALSE)
 
 # Step 9: Print summary statistics
@@ -339,7 +228,7 @@ library(sjPlot)
 dataset1_summary <- all_comments %>%
   group_by(newsgroup) %>%
   summarize(
-    Threads = n_distinct(Thread.ID),
+    Threads = n_distinct(TH_ID),
     Comments = n(),
     Authors = n_distinct(Author),
     Avg_Comments_Per_Thread = Comments / Threads,
@@ -349,7 +238,7 @@ dataset1_summary <- all_comments %>%
 # Add a totals row
 dataset1_totals <- dataset1_summary %>%
   summarize(
-    newsgroup = "Total",
+    NG_ID = "Total",
     Threads = sum(Threads),
     Comments = sum(Comments),
     Authors = n_distinct(all_comments$Author),
@@ -361,7 +250,7 @@ dataset1_totals <- dataset1_summary %>%
 dataset1_summary <- bind_rows(dataset1_summary, dataset1_totals)
 
 # Save or print the summary
-tab_df(dataset1_summary, file = paste0(output_directory, "/Images and Tables/Tables/dataset1_statistics.html"))
+tab_df(dataset1_summary, file = file.path(output_directory, "Images and Tables/Tables/dataset1_statistics.html"))
 ```
 
 ## Dataset 2 Descriptive Statistics
@@ -369,136 +258,88 @@ tab_df(dataset1_summary, file = paste0(output_directory, "/Images and Tables/Tab
 dataset2_stats <- relevant_comments %>%
   group_by(newsgroup) %>%
   summarize(
-    Related_Comments = n(),
-    Related_Threads = n_distinct(Thread.ID),
-    Total_Comments_in_Related_Threads = sum(n()),
-    Unique_Authors_in_Related_Threads = n_distinct(Author),
-    Percent_Comments_with_Keyword = mean(Relevancy > 0) * 100,
-    Avg_Comment_Relevancy = mean(Relevancy, na.rm = TRUE),
-    Avg_Thread_Relevancy = mean(relevant_threads$ThreadRelevancyScore[relevant_threads$newsgroup == first(newsgroup)], na.rm = TRUE)
+    Threads = n_distinct(TH_ID),
+    Comments = n(),
+    Authors = n_distinct(Author),
+    Avg_Comments_Per_Thread = Comments / Threads,
+    Avg_Sentiment_Score = mean(SentimentScore, na.rm = TRUE)
   )
 
 # Add a totals row
 dataset2_totals <- dataset2_stats %>%
   summarize(
-    newsgroup = "Total",
-    Related_Comments = sum(Related_Comments),
-    Related_Threads = sum(Related_Threads),
-    Total_Comments_in_Related_Threads = sum(Total_Comments_in_Related_Threads),
-    Unique_Authors_in_Related_Threads = n_distinct(relevant_comments$Author),
-    Percent_Comments_with_Keyword = mean(Percent_Comments_with_Keyword),
-    Avg_Comment_Relevancy = mean(Avg_Comment_Relevancy),
-    Avg_Thread_Relevancy = mean(Avg_Thread_Relevancy)
+    NG_ID = "Total",
+    Threads = sum(Threads),
+    Comments = sum(Comments),
+    Authors = n_distinct(all_comments$Author),
+    Avg_Comments_Per_Thread = sum(Comments) / sum(Threads),
+    Avg_Sentiment_Score = mean(all_comments$SentimentScore, na.rm = TRUE)
   )
 
 dataset2_stats <- bind_rows(dataset2_stats, dataset2_totals)
 
 # Save as HTML or CSV
-tab_df(dataset2_stats, file = paste0(output_directory, "/Images and Tables/Tables/dataset2_statistics.html"))
+tab_df(dataset2_stats, file = file.path(output_directory, "Images and Tables/Tables/dataset2_statistics.html"))
 ```
 
 ## Dataset 3 Descriptive Statistics
-```{r Dataset 3 Descriptive Statistics}
-dataset3_stats <- filtered_relevant_comments %>%
+```{r Dataset 4 Descriptive Statistics}
+library(dplyr)
+library(sjPlot)
+
+# Compute statistics grouped by newsgroup
+descriptive_stats <- all_comments_in_influential_threads %>%
   group_by(newsgroup) %>%
-  summarize(
-    Related_Comments = n(),
-    Related_Threads = n_distinct(Thread.ID),
-    Total_Comments_in_Related_Threads = sum(n()),
-    Unique_Authors_in_Related_Threads = n_distinct(Author),
-    Percent_Comments_with_Keyword = mean(Relevancy > 0) * 100,
-    Avg_Comment_Relevancy = mean(Relevancy, na.rm = TRUE),
-    Avg_Thread_Relevancy = mean(filtered_relevant_threads$ThreadRelevancyScore[filtered_relevant_threads$newsgroup == first(newsgroup)], na.rm = TRUE)
+  summarise(
+    Threads = n_distinct(NG_TH_ID),  # Total threads
+    Total_Comments = n(),  # Total comments
+    Influential_Authors_Comments = sum(Author %in% influential_author_comments$Author),  # Influential authors' comments
+    Total_Authors = n_distinct(Author),  # Total unique authors
+    Influential_Authors = n_distinct(Author[Author %in% influential_author_comments$Author]),  # Unique influential authors
+    Average_Comments_Per_Thread = n() / n_distinct(NG_TH_ID),  # Avg comments per thread
+    Avg_Total_Comments_Sentiment_Score = mean(SentimentScore, na.rm = TRUE),  # Avg sentiment for all comments
+    Avg_Influential_Comments_Sentiment_Score = mean(SentimentScore[Author %in% influential_author_comments$Author], na.rm = TRUE)  # Avg sentiment for influential comments
   )
 
 # Add a totals row
-dataset3_totals <- dataset3_stats %>%
-  summarize(
+totals_row <- descriptive_stats %>%
+  summarise(
     newsgroup = "Total",
-    Related_Comments = sum(Related_Comments),
-    Related_Threads = sum(Related_Threads),
-    Total_Comments_in_Related_Threads = sum(Total_Comments_in_Related_Threads),
-    Unique_Authors_in_Related_Threads = n_distinct(filtered_relevant_comments$Author),
-    Percent_Comments_with_Keyword = mean(Percent_Comments_with_Keyword),
-    Avg_Comment_Relevancy = mean(Avg_Comment_Relevancy),
-    Avg_Thread_Relevancy = mean(Avg_Thread_Relevancy)
+    Threads = sum(Threads),
+    Total_Comments = sum(Total_Comments),
+    Influential_Authors_Comments = sum(Influential_Authors_Comments),
+    Total_Authors = n_distinct(all_comments_in_influential_threads$Author),
+    Influential_Authors = n_distinct(influential_author_comments$Author),
+    Average_Comments_Per_Thread = sum(Total_Comments) / sum(Threads),
+    Avg_Total_Comments_Sentiment_Score = mean(all_comments_in_influential_threads$SentimentScore, na.rm = TRUE),
+    Avg_Influential_Comments_Sentiment_Score = mean(influential_author_comments$SentimentScore, na.rm = TRUE)
   )
 
-dataset3_stats <- bind_rows(dataset3_stats, dataset3_totals)
+# Combine newsgroup stats with totals row
+descriptive_stats <- bind_rows(descriptive_stats, totals_row)
 
-# Save as HTML or CSV
-tab_df(dataset3_stats, file = paste0(output_directory, "/Images and Tables/Tables/dataset3_statistics.html"))
+# Save and display the table
+tab_df(descriptive_stats, file = file.path(output_directory, "Images and Tables/Tables/dataset3_statistics.html"))
 ```
 
-## Dataset 4 Descriptive Statistics
-```{r Dataset 4 Descriptive Statistics}
-library(dplyr)
-
-# Generate descriptive statistics for Dataset 4
-dataset4_stats <- all_comments_in_influential_threads %>%
-  group_by(newsgroup) %>%
-  summarize(
-    Unique_Threads = n_distinct(Thread.ID),  # Unique threads with influential authors
-    Total_Comments_All = n(),  # Total comments in relevant threads
-    Influential_Comments = sum(Author %in% influential_authors$Author),  # Comments by influential authors
-    Non_Influential_Comments = Total_Comments_All - Influential_Comments,  # Comments by non-influential authors
-    Avg_Comment_Relevancy_All = mean(Relevancy, na.rm = TRUE),  # Avg relevancy for all comments
-    Avg_Comment_Relevancy_Influential = mean(Relevancy[Author %in% influential_authors$Author], na.rm = TRUE),  # Avg relevancy for influential authors
-    Avg_Comment_Relevancy_Non_Influential = mean(Relevancy[!(Author %in% influential_authors$Author)], na.rm = TRUE),  # Avg relevancy for non-influential authors
-    Percent_Comments_With_Keyword_All = mean(Relevancy > 0) * 100,  # Percent of all comments with keyword
-    Percent_Comments_With_Keyword_Influential = mean(Relevancy[Author %in% influential_authors$Author] > 0) * 100,  # Percent of influential comments with keyword
-    Percent_Comments_With_Keyword_Non_Influential = mean(Relevancy[!(Author %in% influential_authors$Author)] > 0) * 100,  # Percent of non-influential comments with keyword
-    Unique_Authors_in_Threads = n_distinct(Author),  # Unique authors in threads
-    Avg_Thread_Relevancy = mean(influential_threads$ThreadRelevancyScore[influential_threads$threads$newsgroup == first(newsgroup)], na.rm = TRUE)  # Average thread relevancy
-  )
-
-# Add a totals row for all newsgroups combined
-dataset4_totals <- dataset4_stats %>%
-  summarize(
-    newsgroup = "Total",
-    Unique_Threads = sum(Unique_Threads),
-    Total_Comments_All = sum(Total_Comments_All),
-    Influential_Comments = sum(Influential_Comments),
-    Non_Influential_Comments = sum(Non_Influential_Comments),
-    Avg_Comment_Relevancy_All = mean(Avg_Comment_Relevancy_All, na.rm = TRUE),
-    Avg_Comment_Relevancy_Influential = mean(Avg_Comment_Relevancy_Influential, na.rm = TRUE),
-    Avg_Comment_Relevancy_Non_Influential = mean(Avg_Comment_Relevancy_Non_Influential, na.rm = TRUE),
-    Percent_Comments_With_Keyword_All = mean(Percent_Comments_With_Keyword_All, na.rm = TRUE),
-    Percent_Comments_With_Keyword_Influential = mean(Percent_Comments_With_Keyword_Influential, na.rm = TRUE),
-    Percent_Comments_With_Keyword_Non_Influential = mean(Percent_Comments_With_Keyword_Non_Influential, na.rm = TRUE),
-    Unique_Authors_in_Threads = sum(Unique_Authors_in_Threads),
-    Avg_Thread_Relevancy = mean(Avg_Thread_Relevancy, na.rm = TRUE)
-  )
-
-# Combine statistics and totals
-dataset4_stats <- bind_rows(dataset4_stats, dataset4_totals)
-
-# Save or display the table
-tab_df(dataset4_stats, file = paste0(output_directory, "/Images and Tables/Tables/dataset4_statistics.html"))
-
-# Print the table
-print(dataset4_stats)
-```
-
-## Dataset 4 Author Statistics
-```{r Dataset 4 Author Statistics}
-# Filter influential authors' participation in Dataset Three
-dataset3_influential_comments <- filtered_relevant_comments %>%
+## Dataset 3 Author Statistics
+```{r Dataset 3 Author Statistics}
+# Filter influential authors' participation in Dataset 3
+dataset3_influential_comments <- relevant_comments %>%
   filter(Author %in% influential_authors$Author)
 
-dataset3_influential_threads <- filtered_relevant_threads %>%
-  filter(Unique_ThreadID %in% dataset3_influential_comments$Thread.ID)
+dataset3_influential_threads <- relevant_threads %>%
+  filter(NG_TH_ID %in% dataset3_influential_comments$NG_TH_ID)
 
 # Add descriptive statistics for each influential author
 author_stats <- dataset3_influential_comments %>%
   group_by(Author) %>%
   summarise(
-    Influence = unique(influential_authors$Influence[influential_authors$Author == Author]),
-    Num_Comments = n_distinct(NG_Relative_CommentID),  # Number of comments authored
-    Num_Threads = n_distinct(Thread.ID),  # Number of threads participated in
-    Threads_Started = sum(Comment.ID == "CM00001", na.rm = TRUE),  # Threads started
+    Influence = unique(influential_authors$InfluenceScore[influential_authors$Author == Author]),
+    Num_Comments = n_distinct(TH_CM_ID),  # Number of comments authored
+    Num_Threads = n_distinct(NG_TH_ID),  # Number of threads participated in
+    Threads_Started = sum(CM_ID == "CM00001", na.rm = TRUE),  # Threads started
     Avg_Sentiment = mean(SentimentScore, na.rm = TRUE),  # Average sentiment score
-    Avg_Relevancy = mean(Relevancy, na.rm = TRUE)  # Average relevancy score
   )
 
 # Filter out authors with missing Influence scores and sort by Influence
@@ -507,7 +348,7 @@ author_stats <- author_stats %>%
   arrange(desc(Influence))
 
 # Save the table as an HTML file
-tab_df(author_stats, file = paste0(output_directory, "/Images and Tables/Tables/dataset4_author_statistics.html"))
+tab_df(author_stats, file = file.path(output_directory, "Images and Tables/Tables/dataset3_author_statistics.html"))
 
 # Display the table
 print(author_stats)

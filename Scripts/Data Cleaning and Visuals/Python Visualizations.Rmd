@@ -44,241 +44,347 @@ dataset1_comments = pd.read_csv(os.path.join(comments_directory, "dataset1_comme
 dataset2_threads = pd.read_csv(os.path.join(threads_directory, "dataset2_threads.csv"))
 dataset2_comments = pd.read_csv(os.path.join(comments_directory, "dataset2_comments.csv"))
 dataset3_threads = pd.read_csv(os.path.join(threads_directory, "dataset3_threads.csv"))
-dataset3_comments = pd.read_csv(os.path.join(comments_directory, "dataset3_comments.csv"))
-dataset4_threads = pd.read_csv(os.path.join(threads_directory, "dataset4_threads.csv"))
-dataset4_comments_all = pd.read_csv(os.path.join(comments_directory, "dataset4_comments_all.csv"))
-dataset4_comments_onlyinfluential = pd.read_csv(os.path.join(comments_directory, "dataset4_comments_onlyinfluential.csv"))
+dataset3_comments_all = pd.read_csv(os.path.join(comments_directory, "dataset3_comments_all.csv"))
+dataset3_comments_onlyinfluential = pd.read_csv(os.path.join(comments_directory, "dataset3_comments_onlyinfluential.csv"))
 influential_authors = pd.read_csv(os.path.join(output_directory, "CSV Files/influential_authors.csv"))
 ```
 
 # Cool Initial Visualizations
 ```{python}
-
+print(dataset2_comments.columns)
+print(dataset3_comments_all.columns)
 ```
 
-# Theme Prevelance Hypothesis
-## LDA Topic Modeling
-```{python LDA Topic Model + Betas, 6 Topics}
-# Download required NLTK data
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt', quiet=True)
+# LDAs
+## Topic Modeling
+```{python Datasets 2 and 3 Topic Models}
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+import numpy as np
+import pandas as pd
+import re
 
+# Preprocessing function
 def preprocess_text(text):
-    """Preprocess text data"""
-    # Convert to lowercase
-    text = str(text).lower()
-    # Remove special characters and numbers
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    text = ' '.join([word for word in text.split() if word not in stop_words])
-    return text
+    stop_words = set(stopwords.words("english"))
+    lemmatizer = WordNetLemmatizer()
+    text = re.sub(r"\W+", " ", text)  # Remove non-alphanumeric characters
+    tokens = word_tokenize(text.lower())
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words and len(word) > 2]
+    return " ".join(tokens)
 
-def create_styled_html(general_results_df):
-    """Create a styled HTML table from the results DataFrame"""
-    # Create a copy of the DataFrame for styling
-    styled_df = general_results_df.copy()
-    
-    # Define CSS styles
-    styles = [
-        dict(selector="caption", 
-             props=[("caption-side", "top"),
-                   ("font-size", "16px"),
-                   ("font-weight", "bold"),
-                   ("text-align", "center"),
-                   ("padding", "10px")]),
-        dict(selector="th", 
-             props=[("font-size", "14px"),
-                   ("text-align", "center"),
-                   ("background-color", "#f0f0f0"),
-                   ("padding", "8px")]),
-        dict(selector="td", 
-             props=[("padding", "8px"),
-                   ("text-align", "left")]),
-        dict(selector="tr:nth-child(even)",
-             props=[("background-color", "#f9f9f9")]),
-        dict(selector="table",
-             props=[("border-collapse", "collapse"),
-                   ("width", "100%"),
-                   ("margin", "20px 0"),
-                   ("font-family", "Arial, sans-serif")]),
-        dict(selector="", 
-             props=[("border", "1px solid #ddd")])
-    ]
-    
-    # Apply styling
-    styled_table = (styled_df.style
-                   .set_table_styles(styles)
-                   .set_caption("LDA Topic Analysis Results")
-                   .format(precision=4)
-                   .background_gradient(subset=[col for col in styled_df.columns if 'betas' in col],
-                                     cmap='Blues')
-                   .hide(axis='index'))
-    
-    # Add custom CSS for alternating topic columns
-    for i in range(1, 7):
-        styled_table = styled_table.set_properties(**{
-            f'Topic_{i}_terms': {
-                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
-                'border-right': '2px solid #ddd'
-            },
-            f'Topic_{i}_betas': {
-                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
-                'border-right': '2px solid #ddd'
-            }
-        })
-    
-    return styled_table
+# Preprocess datasets
+dataset2_text = dataset2_comments["Full.Text"].dropna().astype(str).apply(preprocess_text)
+dataset3_text = dataset4_comments_all["Full.Text"].dropna().astype(str).apply(preprocess_text)
 
-def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
-    """Perform topic analysis on the comments with adjusted parameters"""
-    print("Starting topic analysis...")
-    
-    # Convert dates to datetime and sort
-    filtered_comments['Date'] = pd.to_datetime(filtered_comments['Date'])
-    filtered_comments = filtered_comments.sort_values('Date')
-    
-    # Check temporal distribution
-    print("\nTemporal distribution of documents:")
-    print(filtered_comments['Date'].dt.year.value_counts().sort_index())
-    print("\nMonthly document counts:")
-    print(filtered_comments.groupby(pd.Grouper(key='Date', freq='M')).size().sort_index())
-    
-    # Preprocess texts
-    texts = [preprocess_text(text) for text in filtered_comments['Full.Text']]
-    
-    # Create document-term matrix with adjusted parameters
-    print("Creating document-term matrix...")
-    vectorizer = CountVectorizer(
-        max_df=0.8,
-        min_df=3,
-        stop_words='english',
-        max_features=5000
-    )
-    doc_term_matrix = vectorizer.fit_transform(texts)
-    
-    # Train LDA model with adjusted parameters
-    print("Training LDA model...")
-    lda = LatentDirichletAllocation(
-        n_components=n_topics,
-        random_state=123,
-        max_iter=50,
-        learning_decay=0.7,
-        batch_size=128,
-        evaluate_every=5
-    )
-    
-    # Fit the model
-    lda.fit(doc_term_matrix)
-    
-    # Get feature names
-    feature_names = vectorizer.get_feature_names_out()
-    
-    # Create top terms dataframe
-    print("Extracting top terms...")
-    top_terms_dict = {}
-    
-    for topic_idx, topic in enumerate(lda.components_):
-        top_indices = topic.argsort()[:-n_top_words-1:-1]
-        top_terms = [feature_names[i] for i in top_indices]
-        top_betas = [topic[i] for i in top_indices]
-        
-        top_terms_dict[f'Topic_{topic_idx+1}_terms'] = top_terms
-        top_terms_dict[f'Topic_{topic_idx+1}_betas'] = [round(beta, 4) for beta in top_betas]
-    
-    # Create DataFrame
-    general_results_df = pd.DataFrame(top_terms_dict)
-    
-    # Add temporal information
-    doc_topics = lda.transform(doc_term_matrix)
-    document_results = pd.DataFrame(doc_topics)
-    document_results.columns = [f'Topic_{i+1}' for i in range(n_topics)]
-    document_results['Date'] = filtered_comments['Date']
-    
-    # Save table to Tables directory
-    tables_path = os.path.join(tables_dir, "lda_analysis_dataset3.html")
-    
-    # Create HTML content
-    html_content = f"""
-    <html>
-    <head>
-        <style>
-            table {{
-                border-collapse: collapse;
-                width: 100%;
-                margin: 20px 0;
-                font-family: Arial, sans-serif;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f5f5f5;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            caption {{
-                font-size: 1.2em;
-                margin-bottom: 10px;
-                font-weight: bold;
-            }}
-        </style>
-    </head>
-    <body>
-        <table>
-            <caption>Dataset 3 LDA Topic Analysis Results</caption>
-            {general_results_df.to_html(index=False)}
-        </table>
-    </body>
-    </html>
-    """
-    
-    with open(tables_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    
-    # Create visualization
-    print("Creating visualization...")
-    plt.figure(figsize=(15, 10))
-    for topic_idx in range(n_topics):
-        plt.subplot(2, 3, topic_idx + 1)
-        top_terms = top_terms_dict[f'Topic_{topic_idx+1}_terms'][:10]
-        top_betas = top_terms_dict[f'Topic_{topic_idx+1}_betas'][:10]
-        plt.barh(range(len(top_terms)), top_betas)
-        plt.yticks(range(len(top_terms)), top_terms)
-        plt.title(f'Topic {topic_idx + 1}')
-    
-    plt.tight_layout()
-    
-    # Save plot to Images directory
-    plot_path = os.path.join(images_dir, "lda_visualization_dataset3.png")
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    print("Analysis complete! Results saved to:")
-    print(f"- Table: {tables_path}")
-    print(f"- Plot: {plot_path}")
-    
-    return general_results_df, lda, vectorizer, doc_term_matrix, document_results
+# Vectorize text
+def vectorize_text(data):
+    vectorizer = CountVectorizer(max_df=0.9, min_df=5, stop_words="english")
+    doc_term_matrix = vectorizer.fit_transform(data)
+    return doc_term_matrix, vectorizer
 
-# Run the analysis
-try:
-    print("\nStarting topic analysis...")
-    general_results_df, lda_model, vectorizer, doc_term_matrix, document_results = analyze_topics(dataset3_comments)
-    print("\nAnalysis completed successfully!")
+# Determine optimal number of topics
+def find_optimal_topics(doc_term_matrix, topic_range=(1, 10)):
+    coherence_values = []
+    for n_topics in range(topic_range[0], topic_range[1] + 1):
+        lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
+        lda.fit(doc_term_matrix)
+        coherence_values.append(lda.perplexity(doc_term_matrix))
+    optimal_n_topics = coherence_values.index(min(coherence_values)) + topic_range[0]
+    return optimal_n_topics, coherence_values
+
+# Extract topics and top words
+def extract_topics(lda_model, vectorizer, n_top_words=20):
+    topics = []
+    for topic_idx, topic in enumerate(lda_model.components_):
+        top_words = [vectorizer.get_feature_names_out()[i] for i in topic.argsort()[:-n_top_words - 1:-1]]
+        topics.append((f"Topic {topic_idx + 1}", top_words))
+    return topics
+
+# Process Dataset 2
+dataset2_matrix, dataset2_vectorizer = vectorize_text(dataset2_text)
+optimal_topics_2, coherence_2 = find_optimal_topics(dataset2_matrix)
+lda_dataset2 = LatentDirichletAllocation(n_components=optimal_topics_2, random_state=42)
+lda_dataset2.fit(dataset2_matrix)
+topics_2 = extract_topics(lda_dataset2, dataset2_vectorizer)
+
+# Process Dataset 3
+dataset3_matrix, dataset3_vectorizer = vectorize_text(dataset3_text)
+optimal_topics_3, coherence_3 = find_optimal_topics(dataset3_matrix)
+lda_dataset3 = LatentDirichletAllocation(n_components=optimal_topics_3, random_state=42)
+lda_dataset3.fit(dataset3_matrix)
+topics_3 = extract_topics(lda_dataset3, dataset3_vectorizer)
+
+# Output results
+print(f"Optimal number of topics for Dataset 2: {optimal_topics_2}")
+print(f"\nOptimal number of topics for Dataset 3: {optimal_topics_3}")
+
+def save_topics_to_html(lda_model, vectorizer, output_path, n_top_words=20):
+    topics_data = []
+    for topic_idx, topic in enumerate(lda_model.components_):
+        top_words = [vectorizer.get_feature_names_out()[i] for i in topic.argsort()[:-n_top_words - 1:-1]]
+        top_betas = [topic[i] for i in topic.argsort()[:-n_top_words - 1:-1]]
+        topic_dict = {
+            f"Topic_{topic_idx + 1}_terms": top_words,
+            f"Topic_{topic_idx + 1}_betas": top_betas
+        }
+        topics_data.append(pd.DataFrame(topic_dict))
     
-    # Display top terms for each topic
-    print("\nTop terms for each topic:")
-    print(general_results_df.head())
-    
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    raise
+    # Combine all topics into a single DataFrame
+    topics_df = pd.concat(topics_data, axis=1)
+    topics_df.to_html(output_path, index=False)
+    print(f"Topics saved to: {output_path}")
+
+# Save topics for Dataset 2 (All Comments)
+save_topics_to_html(
+    lda_model=lda_dataset2,
+    vectorizer=dataset2_vectorizer,
+    output_path="/Users/emerson/Github/usenet_webpage/Images and Tables/Tables/lda_analysis_all_comments.html",
+    n_top_words=20
+)
+
+# Save topics for Dataset 3 (Influential Authors)
+save_topics_to_html(
+    lda_model=lda_dataset3,
+    vectorizer=dataset3_vectorizer,
+    output_path="/Users/emerson/Github/usenet_webpage/Images and Tables/Tables/lda_analysis_influential_authors.html",
+    n_top_words=20
+)
 ```
+## Topic Similarity
+```{python Topic Similarity}
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+import os
+from itertools import combinations
+
+def compare_topics_and_save(general_results_path, influential_results_path, output_dir):
+    """
+    Compare topics between general and influential author analyses 
+    using Jaccard similarity and create visualizations.
+    """
+    print("\nComparing topics with Jaccard similarity...")
+
+    # Load general and influential results from HTML
+    general_results = pd.read_html(general_results_path)[0]
+    influential_results = pd.read_html(influential_results_path)[0]
+
+    # List to store topic similarity data
+    topic_similarities = []
+
+    # Calculate Jaccard similarity for all topic pairs
+    for general_topic in range(1, len(general_results.columns) // 2 + 1):
+        general_terms = set(general_results[f"Topic_{general_topic}_terms"].dropna())
+        for influential_topic in range(1, len(influential_results.columns) // 2 + 1):
+            influential_terms = set(influential_results[f"Topic_{influential_topic}_terms"].dropna())
+            similarity = len(general_terms.intersection(influential_terms)) / len(general_terms.union(influential_terms))
+            topic_similarities.append({
+                'General_Topic': general_topic,
+                'Influential_Topic': influential_topic,
+                'Similarity': similarity
+            })
+
+    # Create similarity DataFrame
+    comparison_df = pd.DataFrame(topic_similarities)
+    similarity_matrix = comparison_df.pivot(
+        index='General_Topic',
+        columns='Influential_Topic',
+        values='Similarity'
+    )
+
+    # Reorder the similarity_matrix to reverse the order of General Topics
+    similarity_matrix = similarity_matrix.iloc[::-1]  # Reverse the row order
+
+    # Generate heatmap
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(similarity_matrix, annot=True, fmt='.3f', cmap='YlOrRd', cbar_kws={'label': 'Jaccard Similarity'})
+    plt.title('Topic Similarity Heatmap')
+    plt.xlabel('Influential Topics')
+    plt.ylabel('General Topics')
+
+    # Save heatmap
+    os.makedirs(output_dir, exist_ok=True)
+    heatmap_path = os.path.join(output_dir, "topic_similarity_heatmap.png")
+    plt.savefig(heatmap_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Heatmap saved to: {heatmap_path}")
+
+    # Find the best matches for general topics
+    best_matches = []
+    used_influential_topics = set()
+
+    for general_topic in range(1, len(general_results.columns) // 2 + 1):
+        topic_similarities = comparison_df[comparison_df['General_Topic'] == general_topic]
+        remaining_similarities = topic_similarities[~topic_similarities['Influential_Topic'].isin(used_influential_topics)]
+
+        if not remaining_similarities.empty:
+            best_match = remaining_similarities.loc[remaining_similarities['Similarity'].idxmax()]
+            best_matches.append({
+                'General_Topic': general_topic,
+                'Influential_Topic': int(best_match['Influential_Topic']),
+                'Similarity': best_match['Similarity']
+            })
+            used_influential_topics.add(best_match['Influential_Topic'])
+
+    best_matches_df = pd.DataFrame(best_matches)
+
+    # Generate bar plot for best matches
+    plt.figure(figsize=(12, 6))
+    bars = plt.bar(
+        best_matches_df['Influential_Topic'], 
+        best_matches_df['Similarity'], 
+        color=[plt.cm.Set2(i / 7) for i in best_matches_df['General_Topic']]
+    )
+
+    # Add value labels to bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2., height,
+                 f'{height:.2f}',
+                 ha='center', va='bottom')
+
+    # Customize bar plot
+    plt.title('Best Topic Matches Between General and Influential Authors')
+    plt.xlabel('Influential Topics')
+    plt.ylabel('Jaccard Similarity')
+    plt.ylim(0, max(best_matches_df['Similarity']) * 1.1)  # Add padding above highest bar
+
+    # Add legend for general topics
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=plt.cm.Set2(i / 7), label=f'Topic {i}') 
+        for i in best_matches_df['General_Topic']
+    ]
+    plt.legend(handles=legend_elements, title='Matching General Topic', 
+               bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Save bar plot
+    barplot_path = os.path.join(output_dir, "topic_similarity_barplot.png")
+    plt.savefig(barplot_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Bar plot saved to: {barplot_path}")
+
+    # Save comparison DataFrame to CSV
+    comparison_csv_path = os.path.join(output_dir, "topic_similarity_comparison.csv")
+    comparison_df.to_csv(comparison_csv_path, index=False)
+    print(f"Comparison data saved to: {comparison_csv_path}")
+
+    # Print similarity statistics
+    print("\nTopic Similarity Statistics:")
+    print(f"Average similarity: {comparison_df['Similarity'].mean():.3f}")
+    print(f"Maximum similarity: {comparison_df['Similarity'].max():.3f}")
+    print(f"Minimum similarity: {comparison_df['Similarity'].min():.3f}")
+
+    return comparison_df, best_matches_df
+
+# Example usage
+general_results_path = "/Users/emerson/Github/usenet_webpage/Images and Tables/Tables/lda_analysis_all_comments.html"
+influential_results_path = "/Users/emerson/Github/usenet_webpage/Images and Tables/Tables/lda_analysis_influential_authors.html"
+output_dir = "/Users/emerson/Github/usenet_webpage/Images and Tables/Images"
+
+try:
+    comparison_df, best_matches_df = compare_topics_and_save(
+        general_results_path, 
+        influential_results_path, 
+        output_dir
+    )
+    print("\nJaccard Similarity Analysis Complete.")
+    print("\nBest Matches DataFrame:")
+    print(best_matches_df)
+except Exception as e:
+    print(f"An error occurred during topic comparison: {str(e)}")
+```
+
+## Statistical Signifcance
+```{python}
+import pandas as pd
+import statsmodels.api as sm
+from scipy.stats import ttest_ind
+from scipy.sparse import SparseEfficiencyWarning
+import warnings
+
+# Suppress warnings
+warnings.simplefilter("ignore", category=SparseEfficiencyWarning)
+warnings.simplefilter("ignore", category=FutureWarning)
+
+# Load the comparison data
+comparison_csv_path = "/Users/emerson/Github/usenet_webpage/Images and Tables/Images/topic_similarity_comparison.csv"
+comparison_data = pd.read_csv(comparison_csv_path)
+
+# Regression Analysis
+print("Preparing data for regression analysis...")
+
+# Ensure General_Topic and Influential_Topic are categorical
+comparison_data['General_Topic'] = comparison_data['General_Topic'].astype('category')
+comparison_data['Influential_Topic'] = comparison_data['Influential_Topic'].astype('category')
+
+# Create dummy variables for categorical predictors
+X = pd.get_dummies(comparison_data[['General_Topic', 'Influential_Topic']], drop_first=True)
+
+# Add a constant for the regression model
+X = sm.add_constant(X)
+
+# Convert boolean predictors to integers and ensure all data is numeric
+X = X.applymap(lambda value: int(value) if isinstance(value, bool) else value)
+X = X.apply(pd.to_numeric, errors='coerce')
+
+# Dependent variable: Similarity
+y = pd.to_numeric(comparison_data['Similarity'], errors='coerce')
+
+# Drop rows with NaN in X or y
+if X.isnull().any().any() or y.isnull().any():
+    print("Warning: Non-numeric or missing values detected. Dropping invalid rows.")
+    valid_rows = ~(X.isnull().any(axis=1) | y.isnull())
+    X = X[valid_rows]
+    y = y[valid_rows]
+
+# Verify the cleaned data
+print("\nCleaned Predictors (X):")
+print(X.head())
+print("\nCleaned Dependent Variable (y):")
+print(y.head())
+
+# Fit the regression model
+try:
+    model = sm.OLS(y, X).fit()
+    print("\nRegression Analysis Summary:")
+    print(model.summary())
+except Exception as e:
+    print(f"An error occurred during regression analysis: {str(e)}")
+
+# Pairwise T-Test Analysis
+print("\nPerforming pairwise T-tests between General Topics...")
+
+# Group Jaccard similarities by General_Topic
+grouped_data = comparison_data.groupby('General_Topic')['Similarity']
+
+# Perform pairwise T-tests between General_Topic groups
+t_test_results = []
+for (group1, group2) in combinations(grouped_data.groups.keys(), 2):
+    similarity_group1 = grouped_data.get_group(group1)
+    similarity_group2 = grouped_data.get_group(group2)
+    t_stat, p_value = ttest_ind(similarity_group1, similarity_group2, equal_var=False)
+    t_test_results.append({'Group1': group1, 'Group2': group2, 't-statistic': t_stat, 'p-value': p_value})
+
+# Convert T-test results into a DataFrame
+t_test_results_df = pd.DataFrame(t_test_results)
+
+# Display significant T-test results
+significant_results = t_test_results_df[t_test_results_df['p-value'] < 0.05]
+print("\nPairwise T-Test Results (Significant at p < 0.05):")
+print(significant_results)
+
+# Save T-test results to CSV
+t_test_results_path = "/Users/emerson/Github/usenet_webpage/Images and Tables/Images/t_test_results.csv"
+t_test_results_df.to_csv(t_test_results_path, index=False)
+print(f"\nT-test results saved to: {t_test_results_path}")
+
+```
+
 ## Co-occurance Network
 ```{python co-occurance network}
 def create_static_network(doc_term_matrix, lda_model, vectorizer, output_path='topic_network_visualization.png'):
@@ -513,356 +619,8 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
 ```
 
-# Author Impact Hypothesis
-## Topic Similarity
-```{python LDA Topic Model For Influential Authors"}
-# Download required NLTK data
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt', quiet=True)
 
-def preprocess_text(text):
-    """Preprocess text data"""
-    # Convert to lowercase
-    text = str(text).lower()
-    # Remove special characters and numbers
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    text = ' '.join([word for word in text.split() if word not in stop_words])
-    return text
 
-def create_styled_html(influential_results_df):
-    """Create a styled HTML table from the results DataFrame"""
-    # Create a copy of the DataFrame for styling
-    styled_df = influential_results_df.copy()
-    
-    # Define CSS styles
-    styles = [
-        dict(selector="caption", 
-             props=[("caption-side", "top"),
-                   ("font-size", "16px"),
-                   ("font-weight", "bold"),
-                   ("text-align", "center"),
-                   ("padding", "10px")]),
-        dict(selector="th", 
-             props=[("font-size", "14px"),
-                   ("text-align", "center"),
-                   ("background-color", "#f0f0f0"),
-                   ("padding", "8px")]),
-        dict(selector="td", 
-             props=[("padding", "8px"),
-                   ("text-align", "left")]),
-        dict(selector="tr:nth-child(even)",
-             props=[("background-color", "#f9f9f9")]),
-        dict(selector="table",
-             props=[("border-collapse", "collapse"),
-                   ("width", "100%"),
-                   ("margin", "20px 0"),
-                   ("font-family", "Arial, sans-serif")]),
-        dict(selector="", 
-             props=[("border", "1px solid #ddd")])
-    ]
-    
-    # Apply styling
-    styled_table = (styled_df.style
-                   .set_table_styles(styles)
-                   .set_caption("LDA Topic Analysis Results")
-                   .format(precision=4)
-                   .background_gradient(subset=[col for col in styled_df.columns if 'betas' in col],
-                                     cmap='Blues')
-                   .hide(axis='index'))
-    
-    # Add custom CSS for alternating topic columns
-    for i in range(1, 7):
-        styled_table = styled_table.set_properties(**{
-            f'Topic_{i}_terms': {
-                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
-                'border-right': '2px solid #ddd'
-            },
-            f'Topic_{i}_betas': {
-                'background-color': f'rgba(240, 240, 240, {0.1 * i})',
-                'border-right': '2px solid #ddd'
-            }
-        })
-    
-    return styled_table
-
-def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
-    """Perform topic analysis on the comments with adjusted parameters"""
-    print("Starting topic analysis...")
-    
-    # Convert dates to datetime and sort
-    filtered_comments['Date'] = pd.to_datetime(filtered_comments['Date'])
-    filtered_comments = filtered_comments.sort_values('Date')
-    
-    # Check temporal distribution
-    print("\nTemporal distribution of documents:")
-    print(filtered_comments['Date'].dt.year.value_counts().sort_index())
-    print("\nMonthly document counts:")
-    print(filtered_comments.groupby(pd.Grouper(key='Date', freq='M')).size().sort_index())
-    
-    # Preprocess texts
-    texts = [preprocess_text(text) for text in filtered_comments['Full.Text']]
-    
-    # Create document-term matrix with adjusted parameters
-    print("Creating document-term matrix...")
-    vectorizer = CountVectorizer(
-        max_df=0.8,
-        min_df=3,
-        stop_words='english',
-        max_features=5000
-    )
-    doc_term_matrix = vectorizer.fit_transform(texts)
-    
-    # Train LDA model with adjusted parameters
-    print("Training LDA model...")
-    lda = LatentDirichletAllocation(
-        n_components=n_topics,
-        random_state=123,
-        max_iter=50,
-        learning_decay=0.7,
-        batch_size=128,
-        evaluate_every=5
-    )
-    
-    # Fit the model
-    lda.fit(doc_term_matrix)
-    
-    # Get feature names
-    feature_names = vectorizer.get_feature_names_out()
-    
-    # Create top terms dataframe
-    print("Extracting top terms...")
-    top_terms_dict = {}
-    
-    for topic_idx, topic in enumerate(lda.components_):
-        top_indices = topic.argsort()[:-n_top_words-1:-1]
-        top_terms = [feature_names[i] for i in top_indices]
-        top_betas = [topic[i] for i in top_indices]
-        
-        top_terms_dict[f'Topic_{topic_idx+1}_terms'] = top_terms
-        top_terms_dict[f'Topic_{topic_idx+1}_betas'] = [round(beta, 4) for beta in top_betas]
-    
-    # Create DataFrame
-    influential_results_df = pd.DataFrame(top_terms_dict)
-    
-    # Add temporal information
-    doc_topics = lda.transform(doc_term_matrix)
-    document_results = pd.DataFrame(doc_topics)
-    document_results.columns = [f'Topic_{i+1}' for i in range(n_topics)]
-    document_results['Date'] = filtered_comments['Date']
-    
-    # Save table to Tables directory
-    tables_path = os.path.join(tables_dir, "lda_analysis_dataset4.html")
-    
-    # Create HTML content
-    html_content = f"""
-    <html>
-    <head>
-        <style>
-            table {{
-                border-collapse: collapse;
-                width: 100%;
-                margin: 20px 0;
-                font-family: Arial, sans-serif;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f5f5f5;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            caption {{
-                font-size: 1.2em;
-                margin-bottom: 10px;
-                font-weight: bold;
-            }}
-        </style>
-    </head>
-    <body>
-        <table>
-            <caption>Dataset 4 LDA Topic Analysis Results</caption>
-            {influential_results_df.to_html(index=False)}
-        </table>
-    </body>
-    </html>
-    """
-    
-    with open(tables_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    
-    # Create visualization
-    print("Creating visualization...")
-    plt.figure(figsize=(15, 10))
-    for topic_idx in range(n_topics):
-        plt.subplot(2, 3, topic_idx + 1)
-        top_terms = top_terms_dict[f'Topic_{topic_idx+1}_terms'][:10]
-        top_betas = top_terms_dict[f'Topic_{topic_idx+1}_betas'][:10]
-        plt.barh(range(len(top_terms)), top_betas)
-        plt.yticks(range(len(top_terms)), top_terms)
-        plt.title(f'Topic {topic_idx + 1}')
-    
-    plt.tight_layout()
-    
-    # Save plot to Images directory
-    plot_path = os.path.join(images_dir, "lda_visualization_dataset4.png")
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    
-    print("Analysis complete! Results saved to:")
-    print(f"- Table: {tables_path}")
-    print(f"- Plot: {plot_path}")
-    
-    return influential_results_df, lda, vectorizer, doc_term_matrix, document_results
-
-# Run the analysis
-try:
-    print("\nStarting topic analysis...")
-    influential_results_df, lda_model, vectorizer, doc_term_matrix, document_results = analyze_topics(dataset4_comments_onlyinfluential)
-    print("\nAnalysis completed successfully!")
-    
-    # Display top terms for each topic
-    print("\nTop terms for each topic:")
-    print(influential_results_df.head())
-    
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    raise
-```
-
-```{python Topic Similarity}
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
-import os
-
-def compare_topics(general_results, influential_results, output_dir):
-    """
-    Compare topics between general and influential author analyses 
-    using Jaccard similarity and create visualizations.
-    """
-    print("\nComparing topics with Jaccard similarity...")
-
-    # List to store topic similarity data
-    topic_similarities = []
-
-    # Calculate Jaccard similarity for all topic pairs
-    for i in range(1, len(general_results.columns) // 2 + 1):  # General topics
-        general_terms = set(general_results[f'Topic_{i}_terms'])
-        for j in range(1, len(influential_results.columns) // 2 + 1):  # Influential topics
-            influential_terms = set(influential_results[f'Topic_{j}_terms'])
-            similarity = len(general_terms.intersection(influential_terms)) / len(general_terms.union(influential_terms))
-            topic_similarities.append({
-                'General_Topic': i,
-                'Influential_Topic': j,
-                'Similarity': similarity
-            })
-
-    # Create similarity DataFrame
-    comparison_df = pd.DataFrame(topic_similarities)
-    similarity_matrix = comparison_df.pivot(
-        index='General_Topic',
-        columns='Influential_Topic',
-        values='Similarity'
-    )
-
-    # Generate heatmap
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(similarity_matrix, annot=True, fmt='.3f', cmap='YlOrRd', cbar_kws={'label': 'Jaccard Similarity'})
-    plt.title('Topic Similarity Heatmap')
-    plt.xlabel('Influential Authors Topics')
-    plt.ylabel('General Topics')
-
-    # Save heatmap
-    os.makedirs(output_dir, exist_ok=True)
-    heatmap_path = os.path.join(output_dir, "topic_similarity_heatmap.png")
-    plt.savefig(heatmap_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Heatmap saved to: {heatmap_path}")
-
-    # Find the best matches for general topics
-    best_matches = []
-    used_influential_topics = set()
-
-    for general_topic in range(1, len(general_results.columns) // 2 + 1):
-        topic_similarities = comparison_df[comparison_df['General_Topic'] == general_topic]
-        remaining_similarities = topic_similarities[~topic_similarities['Influential_Topic'].isin(used_influential_topics)]
-
-        if not remaining_similarities.empty:
-            best_match = remaining_similarities.loc[remaining_similarities['Similarity'].idxmax()]
-            best_matches.append({
-                'General_Topic': general_topic,
-                'Influential_Topic': int(best_match['Influential_Topic']),
-                'Similarity': best_match['Similarity']
-            })
-            used_influential_topics.add(best_match['Influential_Topic'])
-
-    best_matches_df = pd.DataFrame(best_matches)
-
-    # Generate bar plot for best matches
-    plt.figure(figsize=(12, 6))
-    bars = plt.bar(
-        best_matches_df['Influential_Topic'], 
-        best_matches_df['Similarity'], 
-        color=[plt.cm.Set2(i / 7) for i in best_matches_df['General_Topic']]
-    )
-
-    # Add value labels to bars
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2., height,
-                 f'{height:.2f}',
-                 ha='center', va='bottom')
-
-    # Customize bar plot
-    plt.title('Best Topic Matches Between General and Influential Authors')
-    plt.xlabel('Influential Authors Topics')
-    plt.ylabel('Jaccard Similarity')
-    plt.ylim(0, max(best_matches_df['Similarity']) * 1.1)  # Add padding above highest bar
-
-    # Add legend for general topics
-    from matplotlib.patches import Patch
-    legend_elements = [
-        Patch(facecolor=plt.cm.Set2(i / 7), label=f'Topic {i}') 
-        for i in best_matches_df['General_Topic']
-    ]
-    plt.legend(handles=legend_elements, title='Matching General Topic', 
-               bbox_to_anchor=(1.05, 1), loc='upper left')
-
-    # Save bar plot
-    barplot_path = os.path.join(output_dir, "topic_similarity_barplot.png")
-    plt.savefig(barplot_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Bar plot saved to: {barplot_path}")
-
-    # Print similarity statistics
-    print("\nTopic Similarity Statistics:")
-    print(f"Average similarity: {comparison_df['Similarity'].mean():.3f}")
-    print(f"Maximum similarity: {comparison_df['Similarity'].max():.3f}")
-    print(f"Minimum similarity: {comparison_df['Similarity'].min():.3f}")
-
-    return comparison_df, best_matches_df
-
-# Example usage
-try:
-    comparison_df, best_matches_df = compare_topics(
-        general_results_df, 
-        influential_results_df, 
-        output_dir=os.path.join(output_directory, "Images and Tables/Images")
-    )
-    print("\nJaccard Similarity Analysis Complete.")
-    print("\nBest Matches DataFrame:")
-    print(best_matches_df)
-except Exception as e:
-    print(f"An error occurred during topic comparison: {str(e)}")
-```
 
 ## Keyword Adoption
 ```{python Keyword Adoption}
@@ -885,7 +643,7 @@ def preprocess_text(text):
     tokens = [word for word in tokens if word not in stop_words and len(word) > 2]
     return tokens
 
-def calculate_keyword_prevalence_aids(df, keywords, text_column='Full.Text'):
+def calculate_keyword_prevalence_aids(df, keywords, Full.Text='Full.Text'):
     """Calculate keyword prevalence for selected AIDS-related terms."""
     # Check for existing 'Date' column ambiguity and rename conflicting columns
     if 'Date' in df.columns and df.columns.duplicated().any():
@@ -901,7 +659,7 @@ def calculate_keyword_prevalence_aids(df, keywords, text_column='Full.Text'):
     # Process texts and count keywords by month
     monthly_counts = []
     for idx, row in df.iterrows():
-        tokens = preprocess_text(row[text_column])
+        tokens = preprocess_text(row[Full.Text])
         # Count keywords in this document
         keyword_counts = Counter(word for word in tokens if word in keywords)
         # Add date information
@@ -1079,42 +837,4 @@ print("\nANOVA Results:")
 print(anova_results)
 print("\nPairwise t-test Results:")
 print(pairwise_results)
-```
-
-## Thematic Prevelance and Jaccard Similarity
-```{python}
-from scipy.stats import ttest_rel, ttest_ind
-
-# Prepare data for statistical analysis
-def prepare_similarity_data(comparison_df):
-    """
-    Extract general and influential topic similarities for analysis.
-    """
-    similarities = comparison_df['Similarity']
-    return similarities
-
-# Perform t-test on Jaccard similarities
-def perform_similarity_ttest(general_similarities, influential_similarities):
-    """
-    Perform paired t-test on Jaccard similarities between general and influential topics.
-    """
-    t_stat, p_value = ttest_rel(general_similarities, influential_similarities)
-    return t_stat, p_value
-
-# Extract similarities for analysis
-general_similarities = comparison_df.pivot(index='General_Topic', columns='Influential_Topic', values='Similarity').mean(axis=1)
-influential_similarities = comparison_df.pivot(index='General_Topic', columns='Influential_Topic', values='Similarity').mean(axis=0)
-
-# Perform t-test
-t_stat, p_value = perform_similarity_ttest(general_similarities, influential_similarities)
-
-# Display results
-print("\nJaccard Similarity Paired t-Test Results:")
-print(f"t-statistic: {t_stat:.3f}, p-value: {p_value:.3f}")
-
-# Determine significance
-if p_value < 0.05:
-    print("The differences in Jaccard similarities are statistically significant.")
-else:
-    print("The differences in Jaccard similarities are not statistically significant.")
 ```
