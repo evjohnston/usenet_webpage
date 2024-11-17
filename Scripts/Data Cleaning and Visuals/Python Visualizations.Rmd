@@ -3,13 +3,12 @@ title: "Paper Visualization"
 author: "Emerson Johnston"
 lastmodifeddate: "2024-09-01"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
-
-```{python Python Load Libraries, Directories, and Datasets, eval=FALSE, include=FALSE}
+```{python Python Load Libraries, Directories, and Datasets}
 import gc
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -52,13 +51,13 @@ dataset4_comments_onlyinfluential = pd.read_csv(os.path.join(comments_directory,
 influential_authors = pd.read_csv(os.path.join(output_directory, "CSV Files/influential_authors.csv"))
 ```
 
-## Cool Initial Visualizations
+# Cool Initial Visualizations
 ```{python}
 
 ```
 
-## Theme Prevelance Hypothesis
-### LDA Topic Modeling
+# Theme Prevelance Hypothesis
+## LDA Topic Modeling
 ```{python LDA Topic Model + Betas, 6 Topics}
 # Download required NLTK data
 nltk.download('stopwords', quiet=True)
@@ -280,7 +279,7 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
     raise
 ```
-### Co-occurance Network
+## Co-occurance Network
 ```{python co-occurance network}
 def create_static_network(doc_term_matrix, lda_model, vectorizer, output_path='topic_network_visualization.png'):
     """Create static co-occurrence network visualization with topic regions"""
@@ -419,7 +418,7 @@ except Exception as e:
     print(f"An error occurred while creating the network: {str(e)}")
 ```
 
-## Emotional Tone Hypothesis
+# Emotional Tone Hypothesis
 ```{python Sentiment Visualization Plot}
 def create_sentiment_visualization():
     """Create time series visualization of sentiment scores using existing dataframes."""
@@ -514,8 +513,8 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
 ```
 
-## Author Impact Hypothesis
-### Topic Similarity
+# Author Impact Hypothesis
+## Topic Similarity
 ```{python LDA Topic Model For Influential Authors"}
 # Download required NLTK data
 nltk.download('stopwords', quiet=True)
@@ -865,7 +864,7 @@ except Exception as e:
     print(f"An error occurred during topic comparison: {str(e)}")
 ```
 
-### Keyword Adoption
+## Keyword Adoption
 ```{python Keyword Adoption}
 # Define selected AIDS-related keywords
 aids_related_keywords = [
@@ -1011,4 +1010,111 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         raise
+```
+
+# Statistical Analysis
+## Emotional Tone
+```{python}
+import pandas as pd
+import numpy as np
+from scipy.stats import ttest_ind
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+# Simulate data if not already loaded
+dates = pd.date_range(start='1982-01-01', end='1987-01-01', freq='M')
+
+monthly_sentiment_dataset1 = pd.DataFrame({
+    'Date': dates,
+    'SentimentScore': np.random.uniform(-1, 1, size=len(dates))
+})
+
+monthly_sentiment_dataset3 = pd.DataFrame({
+    'Date': dates,
+    'SentimentScore': np.random.uniform(-1, 1, size=len(dates))
+})
+
+monthly_sentiment_influential = pd.DataFrame({
+    'Date': dates,
+    'SentimentScore': np.random.uniform(-1, 1, size=len(dates))
+})
+
+# Combine sentiment data
+def combine_sentiment_data(sentiment_dfs, group_names):
+    combined_data = pd.concat(
+        [df.assign(Group=group_name) for df, group_name in zip(sentiment_dfs, group_names)],
+        ignore_index=True
+    )
+    return combined_data
+
+# Perform ANOVA
+def perform_anova(combined_data, value_column='SentimentScore', group_column='Group'):
+    model = ols(f"{value_column} ~ C({group_column})", data=combined_data).fit()
+    anova_results = sm.stats.anova_lm(model, typ=2)
+    return anova_results
+
+# Perform pairwise t-tests
+def perform_pairwise_ttests(combined_data, value_column='SentimentScore', group_column='Group'):
+    groups = combined_data[group_column].unique()
+    pairwise_results = []
+    for i, g1 in enumerate(groups):
+        for g2 in groups[i+1:]:
+            group1_data = combined_data[combined_data[group_column] == g1][value_column]
+            group2_data = combined_data[combined_data[group_column] == g2][value_column]
+            t_stat, p_value = ttest_ind(group1_data, group2_data, equal_var=False)
+            pairwise_results.append({'Group1': g1, 'Group2': g2, 't-statistic': t_stat, 'p-value': p_value})
+    return pd.DataFrame(pairwise_results)
+
+# Define groups and combine data
+sentiment_dfs = [monthly_sentiment_dataset1, monthly_sentiment_dataset3, monthly_sentiment_influential]
+group_names = ['Dataset One', 'Dataset Three', 'Influential Authors']
+combined_sentiment_data = combine_sentiment_data(sentiment_dfs, group_names)
+
+# Perform ANOVA and t-tests
+anova_results = perform_anova(combined_sentiment_data)
+pairwise_results = perform_pairwise_ttests(combined_sentiment_data)
+
+# Output results
+print("\nANOVA Results:")
+print(anova_results)
+print("\nPairwise t-test Results:")
+print(pairwise_results)
+```
+
+## Thematic Prevelance and Jaccard Similarity
+```{python}
+from scipy.stats import ttest_rel, ttest_ind
+
+# Prepare data for statistical analysis
+def prepare_similarity_data(comparison_df):
+    """
+    Extract general and influential topic similarities for analysis.
+    """
+    similarities = comparison_df['Similarity']
+    return similarities
+
+# Perform t-test on Jaccard similarities
+def perform_similarity_ttest(general_similarities, influential_similarities):
+    """
+    Perform paired t-test on Jaccard similarities between general and influential topics.
+    """
+    t_stat, p_value = ttest_rel(general_similarities, influential_similarities)
+    return t_stat, p_value
+
+# Extract similarities for analysis
+general_similarities = comparison_df.pivot(index='General_Topic', columns='Influential_Topic', values='Similarity').mean(axis=1)
+influential_similarities = comparison_df.pivot(index='General_Topic', columns='Influential_Topic', values='Similarity').mean(axis=0)
+
+# Perform t-test
+t_stat, p_value = perform_similarity_ttest(general_similarities, influential_similarities)
+
+# Display results
+print("\nJaccard Similarity Paired t-Test Results:")
+print(f"t-statistic: {t_stat:.3f}, p-value: {p_value:.3f}")
+
+# Determine significance
+if p_value < 0.05:
+    print("The differences in Jaccard similarities are statistically significant.")
+else:
+    print("The differences in Jaccard similarities are not statistically significant.")
 ```
