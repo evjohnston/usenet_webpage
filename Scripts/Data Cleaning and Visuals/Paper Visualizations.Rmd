@@ -1050,6 +1050,7 @@ print(influence_plot)
 output_file_path <- file.path(output_directory, "Images and Tables/Images", "plot_influence_propagation_network_improved.png")
 ggsave(output_file_path, plot = influence_plot, width = 20, height = 16, dpi = 300)
 ```
+
 # For Webpage
 
 ```{r Interactive Co-Occurance Network of Top Terms, eval=TRUE}

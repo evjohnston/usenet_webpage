@@ -9,41 +9,17 @@ output:
 ---
 
 # Maintenance for R and Python.
-```{r Reset and Setup}
-rm(list = ls()) 
-knitr::opts_knit$set(root.dir = '/Users/emerson/Github/usenet_webpage')
-```
+```{python Reset and Setup}
+import gc
 
-```{r R Load Libraries, Directories, and Datasets}
-library(tidyverse)
-library(ggplot2)
-library(dplyr)
-library(igraph)
-library(ggraph)
-library(tidytext)
-library(topicmodels)
-library(visNetwork)
-library(RColorBrewer) 
-library(sjPlot)
-library(ldatuning)
-library(tm)
-library(SnowballC)
+# Clear all variables
+gc.collect()
+for name in dir():
+    if not name.startswith('_'):
+        del globals()[name]
 
-# Load Directories
-output_directory = "/Users/emerson/Github/usenet_webpage"
-threads_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Threads"
-comments_directory <- "/Users/emerson/Github/usenet_webpage/CSV Files/Comments"
-
-# Load the datasets
-all_threads <- read.csv(file.path(threads_directory, "aids_related_threads_82TO86.csv"))
-all_comments <- read.csv(file.path(comments_directory, "aids_related_comments_82TO86.csv"))
-```
-
-```{r R CSV Cleaning}
-all_threads <- all_threads %>% drop_na()
-all_comments <- all_comments %>% drop_na()
-all_comments$Date <- as.Date(all_comments$Date, format = "%Y-%m-%d")
-all_threads$Date <- as.Date(all_threads$Date, format = "%Y-%m-%d")
+# Set the working directory
+root_dir = '/Users/emerson/Github/usenet_webpage'
 ```
 
 ```{python Python Load Libraries, Directories, and Datasets, eval=FALSE, include=FALSE}
@@ -57,17 +33,19 @@ import plotly.graph_objects as go
 import networkx as nx
 import scipy
 
-# Define directories
-output_directory = "/Users/emerson/Github/usenet_webpage/"
-IT_directory = "/Users/emerson/Github/usenet_webpage/Images and Tables/"
-threads_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Threads/"
-comments_directory = "/Users/emerson/Github/usenet_webpage/CSV Files/Comments/"
-images_dir = os.path.join(IT_directory, "Images")
-tables_dir = os.path.join(IT_directory, "Tables")
+# Directories
+output_directory = "/Users/emerson/Github/usenet_webpage"
+threads_directory = os.path.join(output_directory, "CSV Files/Threads")
+comments_directory = os.path.join(output_directory, "CSV Files/Comments")
+images_dir = os.path.join(output_directory, "Images and Tables/Images")
+tables_dir = os.path.join(output_directory, "Images and Tables/Tables")
 
-# Load the datasets with the correct file paths
-all_threads = pd.read_csv(os.path.join(threads_directory, "aids_related_threads_82TO86.csv"))
-all_comments = pd.read_csv(os.path.join(comments_directory, "aids_related_comments_82TO86.csv"))
+# Load cleaned datasets
+filtered_threads = pd.read_csv(os.path.join(threads_directory, "aids_related_threads_82TO86.csv"))
+filtered_comments = pd.read_csv(os.path.join(comments_directory, "aids_related_comments_82TO86.csv"))
+
+summary(filtered_threads)
+summary(filtered_comments)
 ```
 
 ```{python Relevancy Filtering}
@@ -179,7 +157,10 @@ print(filtered_threads['Number.of.Messages'].describe())
 ```
 
 ## Theme Prevelance Hypothesis
+### LDA Topic Modeling
 ```{python LDA Topic Model + Betas, 6 Topics}
+## Theme Prevelance Hypothesis
+```python
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -273,24 +254,44 @@ def create_styled_html(results_df):
     return styled_table
 
 def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
-    """Perform topic analysis on the comments"""
+    """Perform topic analysis on the comments with adjusted parameters"""
     print("Starting topic analysis...")
+    
+    # Convert dates to datetime and sort
+    filtered_comments['Date'] = pd.to_datetime(filtered_comments['Date'])
+    filtered_comments = filtered_comments.sort_values('Date')
+    
+    # Check temporal distribution
+    print("\nTemporal distribution of documents:")
+    print(filtered_comments['Date'].dt.year.value_counts().sort_index())
+    print("\nMonthly document counts:")
+    print(filtered_comments.groupby(pd.Grouper(key='Date', freq='M')).size().sort_index())
     
     # Preprocess texts
     texts = [preprocess_text(text) for text in filtered_comments['Full.Text']]
     
-    # Create document-term matrix
+    # Create document-term matrix with adjusted parameters
     print("Creating document-term matrix...")
-    vectorizer = CountVectorizer(max_df=0.95, min_df=2)
+    vectorizer = CountVectorizer(
+        max_df=0.8,
+        min_df=3,
+        stop_words='english',
+        max_features=5000
+    )
     doc_term_matrix = vectorizer.fit_transform(texts)
     
-    # Train LDA model
+    # Train LDA model with adjusted parameters
     print("Training LDA model...")
     lda = LatentDirichletAllocation(
         n_components=n_topics,
         random_state=123,
-        max_iter=20
+        max_iter=50,
+        learning_decay=0.7,
+        batch_size=128,
+        evaluate_every=5
     )
+    
+    # Fit the model
     lda.fit(doc_term_matrix)
     
     # Get feature names
@@ -310,6 +311,12 @@ def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
     
     # Create DataFrame
     results_df = pd.DataFrame(top_terms_dict)
+    
+    # Add temporal information
+    doc_topics = lda.transform(doc_term_matrix)
+    document_results = pd.DataFrame(doc_topics)
+    document_results.columns = [f'Topic_{i+1}' for i in range(n_topics)]
+    document_results['Date'] = filtered_comments['Date']
     
     # Save table to Tables directory
     tables_path = os.path.join(tables_dir, "general_topics_lda_analysis.html")
@@ -377,12 +384,12 @@ def analyze_topics(filtered_comments, n_topics=6, n_top_words=20):
     print(f"- Table: {tables_path}")
     print(f"- Plot: {plot_path}")
     
-    return results_df, lda, vectorizer, doc_term_matrix
+    return results_df, lda, vectorizer, doc_term_matrix, document_results
 
 # Run the analysis
 try:
     print("\nStarting topic analysis...")
-    results_df, lda_model, vectorizer, doc_term_matrix = analyze_topics(filtered_comments)
+    results_df, lda_model, vectorizer, doc_term_matrix, document_results = analyze_topics(filtered_comments)
     print("\nAnalysis completed successfully!")
     
     # Display top terms for each topic
@@ -393,7 +400,7 @@ except Exception as e:
     print(f"An error occurred: {str(e)}")
     raise
 ```
-
+### Co-occurance Network
 ```{python co-occurance network}
 import numpy as np
 import networkx as nx
@@ -529,12 +536,12 @@ try:
         doc_term_matrix=doc_term_matrix,
         lda_model=lda_model,
         vectorizer=vectorizer,
-        output_path='topic_network_visualization.png'
+        output_path=os.path.join(output_directory, "Images and Tables/Images/topic_network_visualization.png")
     )
-    
+
     print("\nNetwork visualization completed successfully!")
     print("Check 'topic_network_visualization.png' for the static network visualization.")
-    
+
 except Exception as e:
     print(f"An error occurred while creating the network: {str(e)}")
 ```
@@ -710,253 +717,404 @@ except Exception as e:
 ```
 
 ## Author Impact Hypothesis
-```{python}
-# Define the Images and Tables directory
-IT_directory = "/Users/emerson/Github/usenet_webpage/Images and Tables/"
-images_dir = os.path.join(IT_directory, "Images")
-tables_dir = os.path.join(IT_directory, "Tables")
-
-# Create directories if they don't exist
-os.makedirs(images_dir, exist_ok=True)
-os.makedirs(tables_dir, exist_ok=True)
-
-# First create the author network and get influential authors
-edge_df = create_author_network(filtered_comments)
-top_influential_authors = identify_influential_authors(edge_df)
-
-# Create top_authors_comments
-top_authors_comments = filtered_comments[
-    filtered_comments['Author'].isin(top_influential_authors['Author'])
-]
-
-def analyze_influential_topics(top_authors_comments):
-    """Perform LDA analysis for influential authors' comments"""
-    print("\nStarting influential authors' topic analysis...")
+### Topic Similarity
+```{python Topic Similarity}
+def compare_topics(general_results, influential_results):
+    """Compare topics between general and influential author analyses and create visualizations"""
+    print("\nComparing topic distributions...")
     
-    # Preprocess texts using existing preprocess_text function
-    texts = [preprocess_text(text) for text in top_authors_comments['Full.Text']]
+    topic_similarities = []
     
-    # Create document-term matrix
-    print("Creating document-term matrix for influential authors...")
-    influential_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
-    influential_dtm = influential_vectorizer.fit_transform(texts)
-    
-    # Train LDA model
-    print("Training LDA model for influential authors...")
-    influential_lda = LatentDirichletAllocation(
-        n_components=6,
-        random_state=123,
-        max_iter=20
-    )
-    influential_lda.fit(influential_dtm)
-    
-    # Get feature names
-    influential_features = influential_vectorizer.get_feature_names_out()
-    
-    # Create top terms dictionary
-    influential_terms_dict = {}
-    
-    for topic_idx, topic in enumerate(influential_lda.components_):
-        top_indices = topic.argsort()[:-20-1:-1]
-        top_terms = [influential_features[i] for i in top_indices]
-        top_betas = [topic[i] for i in top_indices]
-        
-        influential_terms_dict[f'Topic_{topic_idx+1}_terms'] = top_terms
-        influential_terms_dict[f'Topic_{topic_idx+1}_betas'] = [round(beta, 4) for beta in top_betas]
-    
-    # Create DataFrame
-    influential_results_df = pd.DataFrame(influential_terms_dict)
-    
-    # Save results to Tables directory only
-    tables_path = os.path.join(tables_dir, "influential_topics_lda_analysis.html")
-    
-    # Create a clean HTML table with basic styling
-    html_content = f"""
-    <html>
-    <head>
-        <style>
-            table {{
-                border-collapse: collapse;
-                width: 100%;
-                margin: 20px 0;
-                font-family: Arial, sans-serif;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f5f5f5;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            caption {{
-                font-size: 1.2em;
-                margin-bottom: 10px;
-                font-weight: bold;
-            }}
-        </style>
-    </head>
-    <body>
-        <table>
-            <caption>LDA Topic Analysis Results for Influential Authors</caption>
-            {influential_results_df.to_html(index=False)}
-        </table>
-    </body>
-    </html>
-    """
-    
-    with open(tables_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    
-    print(f"Influential authors' topic analysis saved to: {tables_path}")
-    
-    return influential_results_df, influential_lda, influential_vectorizer, influential_dtm
-
-def compare_topics(main_results_df, influential_results_df):
-    """Compare topics between main analysis and influential authors"""
-    print("\nComparing topics between main and influential authors...")
-    
-    similarities = []
-    
-    def calculate_jaccard_similarity(set1, set2):
-        """Calculate Jaccard similarity between two sets of terms"""
-        intersection = len(set(set1) & set(set2))
-        union = len(set(set1) | set(set2))
-        return intersection / union if union > 0 else 0
-    
-    # Calculate similarities between all topic pairs
+    # Calculate similarities
     for i in range(1, 7):
-        main_terms = main_results_df[f'Topic_{i}_terms'].tolist()
+        general_terms = set(general_results[f'Topic_{i}_terms'])
+        
         for j in range(1, 7):
-            infl_terms = influential_results_df[f'Topic_{j}_terms'].tolist()
-            similarity = calculate_jaccard_similarity(main_terms, infl_terms)
-            similarities.append({
-                'Main_Topic': i,
+            influential_terms = set(influential_results[f'Topic_{j}_terms'])
+            similarity = len(general_terms.intersection(influential_terms)) / len(general_terms.union(influential_terms))
+            
+            topic_similarities.append({
+                'General_Topic': i,
                 'Influential_Topic': j,
                 'Similarity': similarity
             })
     
-    similarities_df = pd.DataFrame(similarities)
+    comparison_df = pd.DataFrame(topic_similarities)
     
-    # Find best matches
-    best_matches = similarities_df.sort_values('Similarity', ascending=False).groupby(
-        'Influential_Topic').first().reset_index()
-    
-    # Create comparison visualization
-    plt.figure(figsize=(12, 6))
-    sns.barplot(
-        data=best_matches,
-        x='Influential_Topic',
-        y='Similarity',
-        hue='Main_Topic',
-        palette='Set2'
+    # Create heatmap
+    plt.figure(figsize=(10, 8))
+    similarity_matrix = comparison_df.pivot(
+        index='General_Topic', 
+        columns='Influential_Topic', 
+        values='Similarity'
     )
     
-    # Add value labels on bars
-    for i, row in best_matches.iterrows():
-        plt.text(
-            i, row['Similarity']/2,
-            f"{row['Similarity']:.2f}",
-            ha='center', va='center'
-        )
+    sns.heatmap(similarity_matrix, 
+                annot=True, 
+                fmt='.3f', 
+                cmap='YlOrRd',
+                vmin=0, 
+                vmax=1,
+                square=True,
+                cbar_kws={'label': 'Jaccard Similarity'})
     
-    plt.title("Topic Similarity Between Main and Influential Authors")
-    plt.xlabel("Influential Authors' Topic")
-    plt.ylabel("Jaccard Similarity")
-    plt.legend(title="Matching Main Topic")
+    plt.title('Topic Similarity Heatmap')
+    plt.xlabel('Influential Authors Topics')
+    plt.ylabel('General Topics')
     
-    # Save comparison plot to Images directory
-    comparison_path = os.path.join(images_dir, "topic_similarity_comparison.png")
-    plt.savefig(comparison_path, dpi=300, bbox_inches='tight')
+    # Save the heatmap
+    heatmap_path = os.path.join(images_dir, "topic_similarity_heatmap.png")
+    plt.savefig(heatmap_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    # Save comparison results to Tables directory
-    best_matches_path = os.path.join(tables_dir, "topic_matches.html")
+    # Find best matching topics
+    best_matches = []
+    used_influential_topics = set()
     
-    # Create HTML content for best matches
-    html_content = f"""
-    <html>
-    <head>
-        <style>
-            table {{
-                border-collapse: collapse;
-                width: 100%;
-                margin: 20px 0;
-                font-family: Arial, sans-serif;
-            }}
-            th, td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            th {{
-                background-color: #f5f5f5;
-            }}
-            tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            caption {{
-                font-size: 1.2em;
-                margin-bottom: 10px;
-                font-weight: bold;
-            }}
-        </style>
-    </head>
-    <body>
-        <table>
-            <caption>Topic Matching Results</caption>
-            {best_matches.to_html(index=False)}
-        </table>
-    </body>
-    </html>
-    """
+    for general_topic in range(1, 7):
+        topic_similarities = comparison_df[comparison_df['General_Topic'] == general_topic]
+        remaining_similarities = topic_similarities[~topic_similarities['Influential_Topic'].isin(used_influential_topics)]
+        
+        if not remaining_similarities.empty:
+            best_match = remaining_similarities.loc[remaining_similarities['Similarity'].idxmax()]
+            best_matches.append({
+                'Influential_Topic': int(best_match['Influential_Topic']),
+                'General_Topic': general_topic,
+                'Similarity': best_match['Similarity']
+            })
+            used_influential_topics.add(best_match['Influential_Topic'])
     
-    with open(best_matches_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
+    best_matches_df = pd.DataFrame(best_matches)
     
-    return best_matches
+    # Create bar plot
+    plt.figure(figsize=(12, 6))
+    bars = plt.bar(best_matches_df['Influential_Topic'], 
+                  best_matches_df['Similarity'],
+                  color=[plt.cm.Set2(i) for i in best_matches_df['General_Topic'] / 7])
+    
+    # Add value labels on bars
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.2f}',
+                ha='center', va='bottom')
+    
+    # Customize plot
+    plt.title('Topic Similarity Between Main and Influential Authors')
+    plt.xlabel('Influential Authors\' Topic')
+    plt.ylabel('Jaccard Similarity')
+    plt.ylim(0, max(best_matches_df['Similarity']) * 1.1)  # Add 10% padding above highest bar
+    
+    # Add legend for matching main topics
+    from matplotlib.patches import Patch
+    legend_elements = [Patch(facecolor=plt.cm.Set2(i/7), 
+                           label=f'Topic {i}') 
+                      for i in best_matches_df['General_Topic']]
+    plt.legend(handles=legend_elements, title='Matching Main Topic', 
+              bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    # Save the bar plot
+    barplot_path = os.path.join(images_dir, "topic_similarity_comparison.png")
+    plt.savefig(barplot_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Print similarity statistics
+    print("\nTopic Similarity Statistics:")
+    print(f"Average similarity: {comparison_df['Similarity'].mean():.3f}")
+    print(f"Maximum similarity: {comparison_df['Similarity'].max():.3f}")
+    print(f"Minimum similarity: {comparison_df['Similarity'].min():.3f}")
+    
+    return comparison_df, best_matches_df
+
+# Example usage:
+if __name__ == "__main__":
+    try:
+        print("\nRunning topic similarity analysis...")
+        comparison_df, best_matches_df = compare_topics(results_df, influential_results_df)
+        print("\nAnalysis completed successfully!")
+        print("\nBest topic matches:")
+        print(best_matches_df.to_string(index=False))
+        
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        raise
+```
+
+### Keyword Adoption
+```{python Keyword Adoption}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from collections import Counter
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import re
+
+# Download required NLTK data
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
+
+def preprocess_text(text):
+    """Clean and tokenize text"""
+    # Convert to lowercase and remove special characters
+    text = str(text).lower()
+    text = re.sub(r'[^a-zA-Z\s]', ' ', text)
+    # Tokenize
+    tokens = word_tokenize(text)
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words and len(word) > 2]
+    return tokens
+
+def get_top_keywords(df, text_column, n_keywords=20):
+    """Get top keywords from the dataset"""
+    # Process all texts
+    all_words = []
+    for text in df[text_column]:
+        tokens = preprocess_text(text)
+        all_words.extend(tokens)
+    
+    # Count words
+    word_counts = Counter(all_words)
+    top_words = pd.DataFrame({
+        'word': list(word_counts.keys()),
+        'count': list(word_counts.values())
+    }).sort_values('count', ascending=False)
+    
+    return top_words.head(n_keywords)['word'].tolist()
+
+def calculate_keyword_prevalence(df, keywords, text_column='Full.Text'):
+    """Calculate monthly keyword prevalence"""
+    # Ensure date is datetime
+    df['Date'] = pd.to_datetime(df['Date'])
+    
+    # Process texts and count keywords by month
+    monthly_counts = []
+    
+    for idx, row in df.iterrows():
+        tokens = preprocess_text(row[text_column])
+        # Count keywords in this document
+        keyword_counts = Counter(word for word in tokens if word in keywords)
+        # Add date information
+        for word, count in keyword_counts.items():
+            monthly_counts.append({
+                'Date': row['Date'],
+                'word': word,
+                'count': count
+            })
+    
+    # Convert to DataFrame
+    counts_df = pd.DataFrame(monthly_counts)
+    
+    # Group by month and word
+    monthly_prevalence = counts_df.groupby([
+        pd.Grouper(key='Date', freq='M'),
+        'word'
+    ])['count'].sum().reset_index()
+    
+    # Calculate prevalence
+    total_counts = monthly_prevalence.groupby('Date')['count'].sum().reset_index()
+    monthly_prevalence = monthly_prevalence.merge(total_counts, on='Date', suffixes=('', '_total'))
+    monthly_prevalence['prevalence'] = monthly_prevalence['count'] / monthly_prevalence['count_total']
+    
+    return monthly_prevalence
+
+def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path):
+    """Create faceted plot of keyword adoption patterns"""
+    # Combine the data
+    influential_prevalence['Group'] = 'Influential Authors'
+    overall_prevalence['Group'] = 'Overall Discussion'
+    combined_data = pd.concat([influential_prevalence, overall_prevalence])
+    
+    # Get unique keywords
+    keywords = combined_data['word'].unique()
+    n_keywords = len(keywords)
+    
+    # Calculate grid dimensions
+    n_cols = 4
+    n_rows = int(np.ceil(n_keywords / n_cols))
+    
+    # Create figure
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, n_rows * 2.5))
+    fig.suptitle('Keyword Adoption Over Time: Influential Authors vs Overall Discussion')
+    
+    # Flatten axes array for easier iteration
+    axes = axes.flatten()
+    
+    # Plot each keyword
+    for idx, keyword in enumerate(sorted(keywords)):
+        keyword_data = combined_data[combined_data['word'] == keyword]
+        
+        # Plot lines for both groups
+        for group in ['Influential Authors', 'Overall Discussion']:
+            group_data = keyword_data[keyword_data['Group'] == group]
+            color = '#ff7f0e' if group == 'Influential Authors' else '#1f77b4'
+            axes[idx].plot(group_data['Date'], group_data['prevalence'],
+                         label=group, color=color)
+        
+        # Customize subplot
+        axes[idx].set_title(keyword)
+        axes[idx].tick_params(axis='x', rotation=45)
+        axes[idx].grid(True, alpha=0.3)
+    
+    # Remove extra subplots
+    for idx in range(len(keywords), len(axes)):
+        fig.delaxes(axes[idx])
+    
+    # Add legend
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, .96),
+              ncol=2, frameon=False)
+    
+    # Adjust layout
+    plt.tight_layout()
+    plt.subplots_adjust(top=.9)
+    
+    # Save plot
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
 
 # Run the analysis
-try:
-    print("\nNumber of comments from influential authors:", len(top_authors_comments))
-    print("Number of unique authors:", len(top_authors_comments['Author'].unique()))
-    
-    # Run LDA for influential authors
-    influential_results_df, influential_lda, influential_vectorizer, influential_dtm = analyze_influential_topics(top_authors_comments)
-    
-    # Compare with main results
-    comparison_results = compare_topics(results_df, influential_results_df)
-    
-    # Print summary statistics
-    print("\nTopic Comparison Summary:")
-    print(f"Average similarity: {comparison_results['Similarity'].mean():.3f}")
-    print(f"Maximum similarity: {comparison_results['Similarity'].max():.3f}")
-    print(f"Minimum similarity: {comparison_results['Similarity'].min():.3f}")
-    
-except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    raise
+if __name__ == "__main__":
+    try:
+        print("\nStarting keyword adoption analysis...")
+        
+        # Get top keywords from influential authors
+        top_keywords = get_top_keywords(filtered_comments, 'Full.Text')
+        
+        # Calculate keyword prevalence
+        influential_prevalence = calculate_keyword_prevalence(
+            top_authors_comments, top_keywords)
+        overall_prevalence = calculate_keyword_prevalence(
+            filtered_comments, top_keywords)
+        
+        # Create visualization
+        output_path = os.path.join(images_dir, "keyword_adoption_over_time.png")
+        plot_keyword_adoption(influential_prevalence, overall_prevalence, output_path)
+        
+        print("\nAnalysis completed successfully!")
+        print(f"Visualization saved to: {output_path}")
+        
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        raise
 ```
-
-
+### Influence Propagation
 ```{python}
+import pandas as pd
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+import os
 
-```
+# Identify influential authors' threads
+influential_threads = filtered_comments[
+    filtered_comments['Author'].isin(top_authors['Author'])
+]['Thread.ID'].unique()
 
+# Create edges based on who commented after influential authors
+# Select comments in threads where influential authors participated
+comments_in_influential_threads = filtered_comments[
+    filtered_comments['Thread.ID'].isin(influential_threads)
+]
 
-```{python}
+# Sort comments by Thread ID and Date
+comments_in_influential_threads = comments_in_influential_threads.sort_values(['Thread.ID', 'Date'])
 
-```
+# Create edges: for each thread, find who commented after influential authors
+edges_list = []
 
+# Group by Thread ID
+for thread_id, group in comments_in_influential_threads.groupby('Thread.ID'):
+    authors = group['Author'].tolist()
+    dates = group['Date'].tolist()
+    
+    # Iterate over comments in the thread
+    for i in range(1, len(authors)):
+        current_author = authors[i]
+        previous_author = authors[i - 1]
+        
+        # Check if the previous author is an influential author and current author is different
+        if previous_author in top_authors['Author'].values and current_author != previous_author:
+            edges_list.append({'from': previous_author, 'to': current_author})
 
-```{python}
+# Convert edges to DataFrame
+edges_df = pd.DataFrame(edges_list)
 
-```
+# Group edges and calculate weights
+edges_df = edges_df.groupby(['from', 'to']).size().reset_index(name='weight')
 
+# Filter for stronger connections (edges with weight above the 25th percentile)
+threshold = edges_df['weight'].quantile(0.25)
+edges_df = edges_df[edges_df['weight'] > threshold]
 
-```{python}
+# Create directed graph
+G = nx.from_pandas_edgelist(edges_df, 'from', 'to', ['weight'], create_using=nx.DiGraph())
 
+# Calculate node sizes based on in-degree
+node_sizes = dict(G.in_degree(weight='weight'))
+
+# Identify top 10 influential nodes based on in-degree
+top_nodes = sorted(node_sizes.items(), key=lambda x: x[1], reverse=True)[:10]
+top_node_names = [node for node, degree in top_nodes]
+
+# Prepare node colors: red for influential authors, light blue for others
+node_colors = []
+for node in G.nodes():
+    if node in top_authors['Author'].values:
+        node_colors.append('red')
+    else:
+        node_colors.append('lightblue')
+
+# Prepare node sizes for plotting (adjust scaling as needed)
+node_size_values = [node_sizes.get(node, 1) * 100 for node in G.nodes()]
+
+# Create layout
+pos = nx.spring_layout(G, k=0.5, iterations=50, seed=42)
+
+# Create plot
+plt.figure(figsize=(20, 16))
+
+# Draw edges with weights
+edge_weights = [G[u][v]['weight'] for u, v in G.edges()]
+nx.draw_networkx_edges(
+    G, pos,
+    edge_color='gray',
+    alpha=0.2,
+    arrows=True,
+    arrowsize=10,
+    width=edge_weights,
+    arrowstyle='-|>'
+)
+
+# Draw nodes
+nx.draw_networkx_nodes(
+    G, pos,
+    node_color=node_colors,
+    node_size=node_size_values
+)
+
+# Draw labels for top nodes
+labels = {node: node if node in top_node_names else '' for node in G.nodes()}
+nx.draw_networkx_labels(
+    G, pos,
+    labels=labels,
+    font_size=10,
+    font_weight='bold'
+)
+
+# Remove axes
+plt.axis('off')
+
+# Save the plot
+output_file_path = os.path.join(
+    output_directory, "Images and Tables", "Images", "plot_influence_propagation_network_improved.png"
+)
+os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+plt.savefig(output_file_path, dpi=300, bbox_inches='tight')
+plt.close()
+
+print(f"Influence propagation network plot saved to {output_file_path}")
 ```
