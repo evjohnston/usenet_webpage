@@ -73,7 +73,7 @@ all_threads <- read.csv(file.path(threads_directory, "combined_threads.csv"))
 all_comments <- read.csv(file.path(comments_directory, "combined_comments.csv"))
 ```
 
-## Dataset One - All Comments Cleaned
+## Dataset 1 - All Comments Cleaned
 ```{r Dataset Cleaning}
 # Map newsgroups to IDs
 newsgroup_ids <- c("netmed" = "NG01", "netmotss" = "NG02", "netnews" = "NG03",
@@ -111,7 +111,7 @@ write.csv(all_threads, file.path(threads_directory, "dataset1_threads.csv"), row
 write.csv(all_comments, file.path(comments_directory, "dataset1_comments.csv"), row.names = FALSE)
 ```
 
-## Dataset Two - AIDS-Related Comments (1982–1986)
+## Dataset 2 - AIDS-Related Comments (1982–1986)
 ```{r Filtering by Keywords with Weighted Groupsand to between 1982-1986}
 # Step 1: Filter threads and comments for the desired period
 relevant_threads <- all_threads %>%
@@ -197,7 +197,7 @@ write.csv(relevant_threads, file.path(threads_directory, "dataset2_threads.csv")
 write.csv(relevant_comments, file.path(comments_directory, "dataset2_comments.csv"), row.names = FALSE)
 ```
 
-## Dataset Three - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartile of Relevancy Scores
+## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartile of Relevancy Scores
 ```{r Calculate Quartiles and Plots}
 # Step 1: Separate threads with TitleRelevancy == 10
 high_title_relevance_threads <- relevant_threads %>%
@@ -289,7 +289,7 @@ debugging3 <- filtered_relevant_threads %>%
   filter(newsgroup == "netreligion")
 ```
 
-## Dataset Four - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartiles of Relevancy Scores and for Only Influential Authors Comments and Threads
+## Dataset 4 - AIDS-Related Comments (1982–1986) - Filtered to Exclude Bottom Quartiles of Relevancy Scores and for Only Influential Authors Comments and Threads
 ```{r Identify Influential Authors}
 library(dplyr)
 library(igraph)
@@ -376,6 +376,8 @@ identify_influential_authors <- function(edge_df, n_authors = 15) {
 }
 
 top_influential_authors <- identify_influential_authors(edge_df, n_authors = 20)
+
+write.csv(top_influential_authors, file.path(output_directory, "/CSV Files/influential_authors.csv"), row.names = FALSE)
 ```
 
 ```{r Influential Authors Comments and Threads}
