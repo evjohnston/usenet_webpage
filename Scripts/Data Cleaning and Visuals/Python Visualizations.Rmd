@@ -867,21 +867,40 @@ except Exception as e:
 
 ### Keyword Adoption
 ```{python Keyword Adoption}
+# Define selected AIDS-related keywords
+aids_related_keywords = [
+    "aids", "virus", "disease", "immune", "blood", "gay", "homosexuality",
+    "hiv", "sexual", "cells", "medical", "drug", "patients", "test", "health",
+    "public", "rights", "positive", "infection", "htlv", "homosexual"
+]
+
+def preprocess_text(text):
+    """Preprocess text by cleaning and tokenizing."""
+    # Convert to lowercase and remove special characters
+    text = str(text).lower()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Tokenize
+    tokens = word_tokenize(text)
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words and len(word) > 2]
+    return tokens
+
 def calculate_keyword_prevalence_aids(df, keywords, text_column='Full.Text'):
     """Calculate keyword prevalence for selected AIDS-related terms."""
-    # Ensure the 'Date' column exists
-    if 'Date' not in df.columns:
-        raise KeyError("'Date' column is missing in the dataset. Ensure your dataset has a 'Date' column.")
+    # Check for existing 'Date' column ambiguity and rename conflicting columns
+    if 'Date' in df.columns and df.columns.duplicated().any():
+        print("Found duplicate columns. Renaming to avoid conflicts...")
+        df = df.loc[:, ~df.columns.duplicated()]
     
-    # Convert 'Date' column to datetime format
-    try:
-        df['Date'] = pd.to_datetime(df['Date'])
-    except Exception as e:
-        raise ValueError(f"Error converting 'Date' column to datetime: {e}")
+    # Ensure 'Date' column is datetime
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    
+    # Drop rows with invalid dates
+    df = df.dropna(subset=['Date'])
     
     # Process texts and count keywords by month
     monthly_counts = []
-    
     for idx, row in df.iterrows():
         tokens = preprocess_text(row[text_column])
         # Count keywords in this document
@@ -897,9 +916,9 @@ def calculate_keyword_prevalence_aids(df, keywords, text_column='Full.Text'):
     # Convert to DataFrame
     counts_df = pd.DataFrame(monthly_counts)
     
-    # Check if 'Date' exists and grouping is possible
-    if counts_df.empty or 'Date' not in counts_df.columns:
-        raise ValueError("'Date' column is missing or no data available after keyword processing.")
+    # Check if counts_df is empty
+    if counts_df.empty:
+        raise ValueError("No keywords found in the dataset after processing.")
     
     # Group by month and word
     monthly_prevalence = counts_df.groupby([
@@ -914,15 +933,65 @@ def calculate_keyword_prevalence_aids(df, keywords, text_column='Full.Text'):
     
     return monthly_prevalence
 
-# Debugging Code Example
+def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path):
+    """Create faceted plot of keyword adoption patterns."""
+    # Combine the data
+    influential_prevalence['Group'] = 'Influential Authors'
+    overall_prevalence['Group'] = 'Overall Discussion'
+    combined_data = pd.concat([influential_prevalence, overall_prevalence])
+    
+    # Get unique keywords
+    keywords = combined_data['word'].unique()
+    n_keywords = len(keywords)
+    
+    # Calculate grid dimensions
+    n_cols = 4
+    n_rows = int(np.ceil(n_keywords / n_cols))
+    
+    # Create figure
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, n_rows * 2.5))
+    fig.suptitle('Keyword Adoption Over Time: Influential Authors vs Overall Discussion')
+    
+    # Flatten axes array for easier iteration
+    axes = axes.flatten()
+    
+    # Plot each keyword
+    for idx, keyword in enumerate(sorted(keywords)):
+        keyword_data = combined_data[combined_data['word'] == keyword]
+        
+        # Plot lines for both groups
+        for group in ['Influential Authors', 'Overall Discussion']:
+            group_data = keyword_data[keyword_data['Group'] == group]
+            color = '#ff7f0e' if group == 'Influential Authors' else '#1f77b4'
+            axes[idx].plot(group_data['Date'], group_data['prevalence'],
+                           label=group, color=color)
+        
+        # Customize subplot
+        axes[idx].set_title(keyword)
+        axes[idx].tick_params(axis='x', rotation=45)
+        axes[idx].grid(True, alpha=0.3)
+    
+    # Remove extra subplots
+    for idx in range(len(keywords), len(axes)):
+        fig.delaxes(axes[idx])
+    
+    # Add legend
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, .96),
+               ncol=2, frameon=False)
+    
+    # Adjust layout
+    plt.tight_layout()
+    plt.subplots_adjust(top=.9)
+    
+    # Save plot
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+# Run Keyword Adoption Analysis
 if __name__ == "__main__":
     try:
         print("\nAnalyzing adoption patterns for AIDS-related keywords...")
-        
-        # Check the datasets
-        print("Checking datasets for 'Date' column and proper formatting...")
-        print("Dataset 4 Comments (Influential Authors):", dataset4_comments_onlyinfluential.head())
-        print("Dataset 3 Comments (Overall Discussion):", dataset3_comments.head())
         
         # Calculate keyword prevalence for AIDS-related terms
         influential_prevalence = calculate_keyword_prevalence_aids(
@@ -942,116 +1011,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         raise
-```
-
-### Influence Propagation
-```{python}
-# Identify influential authors' threads
-influential_threads = filtered_comments[
-    filtered_comments['Author'].isin(top_authors['Author'])
-]['Thread.ID'].unique()
-
-# Create edges based on who commented after influential authors
-# Select comments in threads where influential authors participated
-comments_in_influential_threads = filtered_comments[
-    filtered_comments['Thread.ID'].isin(influential_threads)
-]
-
-# Sort comments by Thread ID and Date
-comments_in_influential_threads = comments_in_influential_threads.sort_values(['Thread.ID', 'Date'])
-
-# Create edges: for each thread, find who commented after influential authors
-edges_list = []
-
-# Group by Thread ID
-for thread_id, group in comments_in_influential_threads.groupby('Thread.ID'):
-    authors = group['Author'].tolist()
-    dates = group['Date'].tolist()
-    
-    # Iterate over comments in the thread
-    for i in range(1, len(authors)):
-        current_author = authors[i]
-        previous_author = authors[i - 1]
-        
-        # Check if the previous author is an influential author and current author is different
-        if previous_author in top_authors['Author'].values and current_author != previous_author:
-            edges_list.append({'from': previous_author, 'to': current_author})
-
-# Convert edges to DataFrame
-edges_df = pd.DataFrame(edges_list)
-
-# Group edges and calculate weights
-edges_df = edges_df.groupby(['from', 'to']).size().reset_index(name='weight')
-
-# Filter for stronger connections (edges with weight above the 25th percentile)
-threshold = edges_df['weight'].quantile(0.25)
-edges_df = edges_df[edges_df['weight'] > threshold]
-
-# Create directed graph
-G = nx.from_pandas_edgelist(edges_df, 'from', 'to', ['weight'], create_using=nx.DiGraph())
-
-# Calculate node sizes based on in-degree
-node_sizes = dict(G.in_degree(weight='weight'))
-
-# Identify top 10 influential nodes based on in-degree
-top_nodes = sorted(node_sizes.items(), key=lambda x: x[1], reverse=True)[:10]
-top_node_names = [node for node, degree in top_nodes]
-
-# Prepare node colors: red for influential authors, light blue for others
-node_colors = []
-for node in G.nodes():
-    if node in top_authors['Author'].values:
-        node_colors.append('red')
-    else:
-        node_colors.append('lightblue')
-
-# Prepare node sizes for plotting (adjust scaling as needed)
-node_size_values = [node_sizes.get(node, 1) * 100 for node in G.nodes()]
-
-# Create layout
-pos = nx.spring_layout(G, k=0.5, iterations=50, seed=42)
-
-# Create plot
-plt.figure(figsize=(20, 16))
-
-# Draw edges with weights
-edge_weights = [G[u][v]['weight'] for u, v in G.edges()]
-nx.draw_networkx_edges(
-    G, pos,
-    edge_color='gray',
-    alpha=0.2,
-    arrows=True,
-    arrowsize=10,
-    width=edge_weights,
-    arrowstyle='-|>'
-)
-
-# Draw nodes
-nx.draw_networkx_nodes(
-    G, pos,
-    node_color=node_colors,
-    node_size=node_size_values
-)
-
-# Draw labels for top nodes
-labels = {node: node if node in top_node_names else '' for node in G.nodes()}
-nx.draw_networkx_labels(
-    G, pos,
-    labels=labels,
-    font_size=10,
-    font_weight='bold'
-)
-
-# Remove axes
-plt.axis('off')
-
-# Save the plot
-output_file_path = os.path.join(
-    output_directory, "Images and Tables", "Images", "plot_influence_propagation_network_improved.png"
-)
-os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-plt.savefig(output_file_path, dpi=300, bbox_inches='tight')
-plt.close()
-
-print(f"Influence propagation network plot saved to {output_file_path}")
 ```
