@@ -55,7 +55,7 @@ print(dataset2_comments.columns)
 print(dataset3_comments_all.columns)
 ```
 
-# LDAs
+# Author Impact
 ## Topic Modeling
 ```{python Datasets 2 and 3 Topic Models}
 from sklearn.feature_extraction.text import CountVectorizer
@@ -78,7 +78,7 @@ def preprocess_text(text):
 
 # Preprocess datasets
 dataset2_text = dataset2_comments["Full.Text"].dropna().astype(str).apply(preprocess_text)
-dataset3_text = dataset4_comments_all["Full.Text"].dropna().astype(str).apply(preprocess_text)
+dataset3_text = dataset3_comments_all["Full.Text"].dropna().astype(str).apply(preprocess_text)
 
 # Vectorize text
 def vectorize_text(data):
@@ -524,7 +524,150 @@ except Exception as e:
     print(f"An error occurred while creating the network: {str(e)}")
 ```
 
-# Emotional Tone Hypothesis
+## Keyword Adoption
+```{python Keyword Adoption}
+## Top 20 Shared Keyword Adoption Analysis
+import pandas as pd
+import numpy as np
+import re
+from nltk.tokenize import word_tokenize
+from collections import Counter
+import matplotlib.pyplot as plt
+import os
+
+def extract_lda_keywords_with_betas(lda_model, vectorizer, n_top_words=20):
+    """
+    Extract top keywords and their beta values from LDA model topics.
+    """
+    keyword_betas = {}
+    for topic_idx, topic in enumerate(lda_model.components_):
+        top_indices = topic.argsort()[:-n_top_words - 1:-1]
+        top_words = [vectorizer.get_feature_names_out()[i] for i in top_indices]
+        top_betas = [topic[i] for i in top_indices]
+        for word, beta in zip(top_words, top_betas):
+            if word in keyword_betas:
+                keyword_betas[word] += beta
+            else:
+                keyword_betas[word] = beta
+    return keyword_betas  # Return dictionary of keywords and their combined betas
+
+def calculate_keyword_prevalence(df, keywords, text_column='Full.Text'):
+    """
+    Calculate monthly prevalence of shared keywords.
+    """
+    # Ensure 'Date' column is datetime
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df = df.dropna(subset=['Date'])  # Drop rows with invalid dates
+
+    monthly_counts = []
+    for _, row in df.iterrows():
+        tokens = preprocess_text_for_matching(row[text_column])
+        keyword_counts = Counter(word for word in tokens if word in keywords)
+        for word, count in keyword_counts.items():
+            monthly_counts.append({
+                'Date': row['Date'],
+                'word': word,
+                'count': count
+            })
+
+    counts_df = pd.DataFrame(monthly_counts)
+    if counts_df.empty:
+        raise ValueError("No shared keywords found in the dataset after processing.")
+
+    # Group by month and calculate prevalence
+    monthly_prevalence = counts_df.groupby([
+        pd.Grouper(key='Date', freq='M'),
+        'word'
+    ])['count'].sum().reset_index()
+
+    total_counts = monthly_prevalence.groupby('Date')['count'].sum().reset_index()
+    monthly_prevalence = monthly_prevalence.merge(total_counts, on='Date', suffixes=('', '_total'))
+    monthly_prevalence['prevalence'] = monthly_prevalence['count'] / monthly_prevalence['count_total']
+
+    return monthly_prevalence
+
+def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path):
+    """
+    Plot keyword adoption patterns for influential authors and general discussions.
+    """
+    influential_prevalence['Group'] = 'Influential Authors'
+    overall_prevalence['Group'] = 'Overall Discussion'
+    combined_data = pd.concat([influential_prevalence, overall_prevalence])
+
+    keywords = combined_data['word'].unique()
+    n_keywords = len(keywords)
+
+    n_cols = 4
+    n_rows = int(np.ceil(n_keywords / n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, n_rows * 3))
+    axes = axes.flatten()
+
+    for idx, keyword in enumerate(sorted(keywords)):
+        keyword_data = combined_data[combined_data['word'] == keyword]
+        for group in ['Influential Authors', 'Overall Discussion']:
+            group_data = keyword_data[keyword_data['Group'] == group]
+            color = '#ff7f0e' if group == 'Influential Authors' else '#1f77b4'
+            axes[idx].plot(group_data['Date'], group_data['prevalence'], label=group, color=color)
+        axes[idx].set_title(keyword)
+        axes[idx].tick_params(axis='x', rotation=45)
+        axes[idx].grid(True, alpha=0.3)
+
+    for idx in range(len(keywords), len(axes)):
+        fig.delaxes(axes[idx])
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', ncol=2, frameon=False, bbox_to_anchor=(0.5, 0.96))
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.9)
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+# Execution for Top 20 Shared Keywords
+try:
+    print("\nAnalyzing adoption patterns for top 20 shared LDA keywords...")
+
+    # Extract LDA keywords with betas from both models
+    lda_keywords_betas_all_comments = extract_lda_keywords_with_betas(lda_dataset2, dataset2_vectorizer)
+    lda_keywords_betas_influential_authors = extract_lda_keywords_with_betas(lda_dataset3, dataset3_vectorizer)
+
+    # Find shared keywords between general and influential topics
+    shared_keywords = set(lda_keywords_betas_all_comments.keys()).intersection(
+        set(lda_keywords_betas_influential_authors.keys())
+    )
+
+    # Combine beta values for shared keywords
+    combined_keyword_betas = {
+        word: lda_keywords_betas_all_comments[word] + lda_keywords_betas_influential_authors[word]
+        for word in shared_keywords
+    }
+
+    # Select top 20 shared keywords based on combined beta values
+    top_20_keywords = sorted(combined_keyword_betas.items(), key=lambda x: x[1], reverse=True)[:21]
+    top_20_keywords = {word for word, beta in top_20_keywords}
+    print(f"\nTop 20 Shared Keywords: {top_20_keywords}")
+
+    # Calculate keyword prevalence for top 20 shared keywords
+    influential_prevalence = calculate_keyword_prevalence(
+        dataset3_comments_onlyinfluential, top_20_keywords
+    )
+    overall_prevalence = calculate_keyword_prevalence(
+        dataset3_comments_all, top_20_keywords
+    )
+
+    # Plot and save results
+    output_path = os.path.join(images_dir, "lda_keyword_adoption_over_time.png")
+    plot_keyword_adoption(influential_prevalence, overall_prevalence, output_path)
+
+    print("\nTop 20 shared keyword adoption analysis completed successfully!")
+    print(f"Visualization saved to: {output_path}")
+
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+```
+
+# Tone
+##Sentiment Visualizations
 ```{python Sentiment Visualization Plot}
 def create_sentiment_visualization():
     """Create time series visualization of sentiment scores using existing dataframes."""
@@ -542,8 +685,8 @@ def create_sentiment_visualization():
     
     # Get monthly averages for each dataset
     monthly_sentiment_dataset1 = calculate_monthly_sentiment(dataset1_comments)
-    monthly_sentiment_dataset3 = calculate_monthly_sentiment(dataset3_comments)
-    monthly_sentiment_influential = calculate_monthly_sentiment(dataset4_comments_onlyinfluential)
+    monthly_sentiment_dataset3 = calculate_monthly_sentiment(dataset2_comments)
+    monthly_sentiment_influential = calculate_monthly_sentiment(dataset3_comments_onlyinfluential)
     
     # Plot the lines
     plt.plot(monthly_sentiment_dataset1['Date'], 
@@ -620,158 +763,7 @@ except Exception as e:
 ```
 
 
-
-
-## Keyword Adoption
-```{python Keyword Adoption}
-# Define selected AIDS-related keywords
-aids_related_keywords = [
-    "aids", "virus", "disease", "immune", "blood", "gay", "homosexuality",
-    "hiv", "sexual", "cells", "medical", "drug", "patients", "test", "health",
-    "public", "rights", "positive", "infection", "htlv", "homosexual"
-]
-
-def preprocess_text(text):
-    """Preprocess text by cleaning and tokenizing."""
-    # Convert to lowercase and remove special characters
-    text = str(text).lower()
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    # Tokenize
-    tokens = word_tokenize(text)
-    # Remove stopwords
-    stop_words = set(stopwords.words('english'))
-    tokens = [word for word in tokens if word not in stop_words and len(word) > 2]
-    return tokens
-
-def calculate_keyword_prevalence_aids(df, keywords, Full.Text='Full.Text'):
-    """Calculate keyword prevalence for selected AIDS-related terms."""
-    # Check for existing 'Date' column ambiguity and rename conflicting columns
-    if 'Date' in df.columns and df.columns.duplicated().any():
-        print("Found duplicate columns. Renaming to avoid conflicts...")
-        df = df.loc[:, ~df.columns.duplicated()]
-    
-    # Ensure 'Date' column is datetime
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-    
-    # Drop rows with invalid dates
-    df = df.dropna(subset=['Date'])
-    
-    # Process texts and count keywords by month
-    monthly_counts = []
-    for idx, row in df.iterrows():
-        tokens = preprocess_text(row[Full.Text])
-        # Count keywords in this document
-        keyword_counts = Counter(word for word in tokens if word in keywords)
-        # Add date information
-        for word, count in keyword_counts.items():
-            monthly_counts.append({
-                'Date': row['Date'],
-                'word': word,
-                'count': count
-            })
-    
-    # Convert to DataFrame
-    counts_df = pd.DataFrame(monthly_counts)
-    
-    # Check if counts_df is empty
-    if counts_df.empty:
-        raise ValueError("No keywords found in the dataset after processing.")
-    
-    # Group by month and word
-    monthly_prevalence = counts_df.groupby([
-        pd.Grouper(key='Date', freq='M'),
-        'word'
-    ])['count'].sum().reset_index()
-    
-    # Calculate prevalence
-    total_counts = monthly_prevalence.groupby('Date')['count'].sum().reset_index()
-    monthly_prevalence = monthly_prevalence.merge(total_counts, on='Date', suffixes=('', '_total'))
-    monthly_prevalence['prevalence'] = monthly_prevalence['count'] / monthly_prevalence['count_total']
-    
-    return monthly_prevalence
-
-def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path):
-    """Create faceted plot of keyword adoption patterns."""
-    # Combine the data
-    influential_prevalence['Group'] = 'Influential Authors'
-    overall_prevalence['Group'] = 'Overall Discussion'
-    combined_data = pd.concat([influential_prevalence, overall_prevalence])
-    
-    # Get unique keywords
-    keywords = combined_data['word'].unique()
-    n_keywords = len(keywords)
-    
-    # Calculate grid dimensions
-    n_cols = 4
-    n_rows = int(np.ceil(n_keywords / n_cols))
-    
-    # Create figure
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, n_rows * 2.5))
-    fig.suptitle('Keyword Adoption Over Time: Influential Authors vs Overall Discussion')
-    
-    # Flatten axes array for easier iteration
-    axes = axes.flatten()
-    
-    # Plot each keyword
-    for idx, keyword in enumerate(sorted(keywords)):
-        keyword_data = combined_data[combined_data['word'] == keyword]
-        
-        # Plot lines for both groups
-        for group in ['Influential Authors', 'Overall Discussion']:
-            group_data = keyword_data[keyword_data['Group'] == group]
-            color = '#ff7f0e' if group == 'Influential Authors' else '#1f77b4'
-            axes[idx].plot(group_data['Date'], group_data['prevalence'],
-                           label=group, color=color)
-        
-        # Customize subplot
-        axes[idx].set_title(keyword)
-        axes[idx].tick_params(axis='x', rotation=45)
-        axes[idx].grid(True, alpha=0.3)
-    
-    # Remove extra subplots
-    for idx in range(len(keywords), len(axes)):
-        fig.delaxes(axes[idx])
-    
-    # Add legend
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, .96),
-               ncol=2, frameon=False)
-    
-    # Adjust layout
-    plt.tight_layout()
-    plt.subplots_adjust(top=.9)
-    
-    # Save plot
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    plt.close()
-
-# Run Keyword Adoption Analysis
-if __name__ == "__main__":
-    try:
-        print("\nAnalyzing adoption patterns for AIDS-related keywords...")
-        
-        # Calculate keyword prevalence for AIDS-related terms
-        influential_prevalence = calculate_keyword_prevalence_aids(
-            dataset4_comments_onlyinfluential, aids_related_keywords
-        )
-        overall_prevalence = calculate_keyword_prevalence_aids(
-            dataset3_comments, aids_related_keywords
-        )
-        
-        # Create visualization
-        output_path = os.path.join(images_dir, "aids_keyword_adoption_over_time.png")
-        plot_keyword_adoption(influential_prevalence, overall_prevalence, output_path)
-        
-        print("\nAnalysis completed successfully!")
-        print(f"Visualization saved to: {output_path}")
-        
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        raise
-```
-
-# Statistical Analysis
-## Emotional Tone
+## Statistical Significance
 ```{python}
 import pandas as pd
 import numpy as np
