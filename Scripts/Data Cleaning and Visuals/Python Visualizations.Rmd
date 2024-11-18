@@ -771,146 +771,123 @@ print(f"\nT-test results saved to: {t_test_results_path}")
 
 ## Co-occurance Network
 ```{python co-occurance network}
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
+import os
+import seaborn as sns
+
 def create_static_network(doc_term_matrix, lda_model, vectorizer, output_path='topic_network_visualization.png'):
-    """Create static co-occurrence network visualization with topic regions"""
+    """Create static co-occurrence network visualization with topic regions."""
     print("Creating static co-occurrence network...")
     
     # Get the document-term matrix as array
     dtm_array = doc_term_matrix.toarray()
-    co_occurrence = np.dot(dtm_array.T, dtm_array)
+    co_occurrence = np.dot(dtm_array.T, dtm_array)  # Calculate co-occurrence matrix
     
-    # Create binary DTM
-    binary_dtm = (dtm_array > 0).astype(int)
-    term_frequency = np.sum(binary_dtm, axis=0)
+    # Get term frequencies
+    term_frequency = np.sum(dtm_array, axis=0)
     
-    # Filter for terms that appear in the top terms from LDA results
+    # Get feature names from the vectorizer
+    feature_names = vectorizer.get_feature_names_out()
+    
+    # Get the top terms from LDA topics
     top_terms = []
-    for i in range(6):
-        col_name = f'Topic_{i+1}_terms'
-        top_terms.extend(general_results_df[col_name].head(15).tolist())  # Limit to top 15 terms per topic
+    for topic_idx, topic in enumerate(lda_model.components_):
+        top_terms.extend([feature_names[i] for i in topic.argsort()[-15:]])  # Top 15 terms for each topic
     top_terms = list(set(top_terms))
     
-    # Get indices of these terms
-    feature_names = vectorizer.get_feature_names_out()
-    filtered_terms = [i for i, term in enumerate(feature_names) if term in top_terms]
-    filtered_co_occurrence = co_occurrence[filtered_terms][:, filtered_terms]
-    terms = feature_names[filtered_terms]
+    # Filter terms in the co-occurrence matrix
+    filtered_indices = [i for i, term in enumerate(feature_names) if term in top_terms]
+    filtered_co_occurrence = co_occurrence[filtered_indices][:, filtered_indices]
+    filtered_terms = [feature_names[i] for i in filtered_indices]
     
-    # Create networkx graph
+    # Create a graph using the filtered terms
     G = nx.Graph()
     
-    # Add edges with weights
-    for i in range(len(terms)):
-        for j in range(i + 1, len(terms)):
-            if filtered_co_occurrence[i, j] > 0:
-                G.add_edge(terms[i], terms[j], weight=filtered_co_occurrence[i, j])
+    # Add edges and nodes
+    for i in range(len(filtered_terms)):
+        for j in range(i + 1, len(filtered_terms)):
+            weight = filtered_co_occurrence[i, j]
+            if weight > 0:
+                G.add_edge(filtered_terms[i], filtered_terms[j], weight=weight)
+    
+    # Set up the plot
+    plt.figure(figsize=(20, 20), facecolor='white')
+    
+    # Layout for graph nodes
+    pos = nx.spring_layout(G, seed=42)
+    
+    # Node sizes based on term frequencies
+    node_sizes = [np.log1p(term_frequency[filtered_indices][i]) * 500 for i in range(len(filtered_terms))]
     
     # Get topic assignments for terms
     term_topic_assignment = []
-    for term in terms:
+    for term in filtered_terms:
         term_topics = []
-        for i in range(6):
-            terms_col = f'Topic_{i+1}_terms'
-            betas_col = f'Topic_{i+1}_betas'
-            if term in general_results_df[terms_col].values:
-                idx = general_results_df[terms_col][general_results_df[terms_col] == term].index[0]
-                term_topics.append((i, general_results_df[betas_col].iloc[idx]))
+        for topic_idx, topic in enumerate(lda_model.components_):
+            if term in [feature_names[i] for i in topic.argsort()[-15:]]:
+                term_topics.append((topic_idx, topic[feature_names.tolist().index(term)]))
         if term_topics:
             term_topic_assignment.append(max(term_topics, key=lambda x: x[1])[0])
         else:
             term_topic_assignment.append(0)
     
-    # Set up the plot with white background
-    plt.figure(figsize=(20, 20), facecolor='white')
-    
-    # Create layout with more spacing
-    pos = nx.spring_layout(G, k=4, iterations=100, seed=42)
-    
-    # Convert pos dict to numpy arrays for each topic
-    topic_positions = {i: [] for i in range(6)}
-    for node, position in pos.items():
-        idx = list(terms).index(node)
-        topic = term_topic_assignment[idx]
-        topic_positions[topic].append(position)
-    
-    # Draw topic regions
-    colors = sns.color_palette("Set2", n_colors=6)
-    alpha_fill = 0.2
-    alpha_edge = 0.5
-    
-    # Draw convex hulls for each topic
-    for topic in range(6):
-        if len(topic_positions[topic]) > 2:  # Need at least 3 points for convex hull
-            points = np.array(topic_positions[topic])
-            hull = ConvexHull(points)
-            hull_points = points[hull.vertices]
-            plt.fill(hull_points[:, 0], hull_points[:, 1], 
-                    alpha=alpha_fill, color=colors[topic])
-            plt.plot(hull_points[:, 0], hull_points[:, 1], 
-                    color=colors[topic], alpha=alpha_edge)
-    
-    # Draw edges
+    # Draw nodes and edges
     edge_weights = [G[u][v]['weight'] for u, v in G.edges()]
     max_edge_weight = max(edge_weights) if edge_weights else 1
     edge_widths = [0.3 + (w / max_edge_weight) for w in edge_weights]
-    nx.draw_networkx_edges(G, pos, alpha=0.1, width=edge_widths, edge_color='gray')
     
-    # Draw nodes
-    node_sizes = [np.log1p(term_frequency[filtered_terms][i]) * 500 for i in range(len(terms))]
-    for topic in range(6):
-        # Get nodes for this topic
-        topic_nodes = [node for node, idx in enumerate(term_topic_assignment) if idx == topic]
-        if topic_nodes:
-            nx.draw_networkx_nodes(G, pos, 
-                                 nodelist=[terms[i] for i in topic_nodes],
-                                 node_color=[colors[topic]],
-                                 node_size=[node_sizes[i] for i in topic_nodes],
-                                 alpha=0.7)
+    nx.draw_networkx_edges(G, pos, alpha=0.2, width=edge_widths, edge_color='gray')
     
-    # Add labels with better spacing and formatting
-    labels = {node: node for node in G.nodes()}
-    nx.draw_networkx_labels(G, pos, labels,
-                          font_size=10,
-                          font_weight='bold',
-                          bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=0.5))
+    colors = sns.color_palette("Set2", len(lda_model.components_))
+    for topic in range(len(lda_model.components_)):
+        topic_nodes = [filtered_terms[i] for i, t in enumerate(term_topic_assignment) if t == topic]
+        nx.draw_networkx_nodes(
+            G, pos, nodelist=topic_nodes, 
+            node_color=[colors[topic]] * len(topic_nodes), 
+            node_size=[node_sizes[i] for i, t in enumerate(term_topic_assignment) if t == topic], 
+            alpha=0.8
+        )
+    
+    # Draw labels
+    nx.draw_networkx_labels(G, pos, font_size=10, font_weight='bold', alpha=0.9)
     
     # Add legend
-    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', 
-                                label=f'Topic {i+1}',
-                                markerfacecolor=colors[i], markersize=15)
-                      for i in range(6)]
-    plt.legend(handles=legend_elements, loc='upper right',
-              title='Topics', title_fontsize=12, fontsize=10)
+    legend_elements = [
+        plt.Line2D([0], [0], marker='o', color='w', label=f'Topic {i+1}', 
+                   markerfacecolor=colors[i], markersize=15)
+        for i in range(len(lda_model.components_))
+    ]
+    plt.legend(handles=legend_elements, loc='upper right', title='Topics')
     
-    # Remove axes
-    plt.axis('on')
-    
-    # Save with high quality
+    # Save the visualization
+    plt.title("Topic Co-occurrence Network", fontsize=16)
+    plt.axis('off')
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
+    print(f"Co-occurrence network saved to {output_path}.")
     
     return G
 
-# Create the visualization using existing data
+# Call the function
+output_path = os.path.join(output_directory, "Images and Tables/Images/cooccurrence_network.png")
 try:
-    print("\nCreating static network visualization...")
+    print("Generating the co-occurrence network...")
     G = create_static_network(
-        doc_term_matrix=doc_term_matrix,
-        lda_model=lda_model,
-        vectorizer=vectorizer,
-        output_path=os.path.join(output_directory, "Images and Tables/Images/topic_network_visualization.png")
+        doc_term_matrix=dataset2_matrix,  # Replace with dataset3_matrix for Dataset 3
+        lda_model=lda_dataset2,          # Replace with lda_dataset3 for Dataset 3
+        vectorizer=dataset2_vectorizer,  # Replace with dataset3_vectorizer for Dataset 3
+        output_path=output_path
     )
-
-    print("\nNetwork visualization completed successfully!")
-    print("Check 'topic_network_visualization.png' for the static network visualization.")
-
+    print("Co-occurrence network generation complete!")
 except Exception as e:
-    print(f"An error occurred while creating the network: {str(e)}")
+    print(f"An error occurred: {e}")
 ```
 
 ## Keyword Adoption
 ```{python Keyword Adoption}
-## Top 20 Shared Keyword Adoption Analysis
 import pandas as pd
 import numpy as np
 import re
@@ -919,21 +896,39 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import os
 
+
+def preprocess_text_for_matching(text):
+    """
+    Preprocess text for keyword matching: tokenize, lowercase, and clean.
+    """
+    if pd.isna(text) or not isinstance(text, str):
+        return []
+    # Tokenize, lowercase, and remove non-alphanumeric characters
+    text = re.sub(r"\W+", " ", text)
+    tokens = word_tokenize(text.lower())
+    return tokens
+
+
 def extract_lda_keywords_with_betas(lda_model, vectorizer, n_top_words=20):
     """
     Extract top keywords and their beta values from LDA model topics.
     """
+    # Define custom stop words
+    custom_stop_words = {"iii"}
+
     keyword_betas = {}
     for topic_idx, topic in enumerate(lda_model.components_):
         top_indices = topic.argsort()[:-n_top_words - 1:-1]
         top_words = [vectorizer.get_feature_names_out()[i] for i in top_indices]
         top_betas = [topic[i] for i in top_indices]
         for word, beta in zip(top_words, top_betas):
-            if word in keyword_betas:
-                keyword_betas[word] += beta
-            else:
-                keyword_betas[word] = beta
+            if word not in custom_stop_words:
+                if word in keyword_betas:
+                    keyword_betas[word] += beta
+                else:
+                    keyword_betas[word] = beta
     return keyword_betas  # Return dictionary of keywords and their combined betas
+
 
 def calculate_keyword_prevalence(df, keywords, text_column='Full.Text'):
     """
@@ -969,6 +964,7 @@ def calculate_keyword_prevalence(df, keywords, text_column='Full.Text'):
     monthly_prevalence['prevalence'] = monthly_prevalence['count'] / monthly_prevalence['count_total']
 
     return monthly_prevalence
+
 
 def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path):
     """
@@ -1007,6 +1003,7 @@ def plot_keyword_adoption(influential_prevalence, overall_prevalence, save_path)
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
 
+
 # Execution for Top 20 Shared Keywords
 try:
     print("\nAnalyzing adoption patterns for top 20 shared LDA keywords...")
@@ -1027,7 +1024,7 @@ try:
     }
 
     # Select top 20 shared keywords based on combined beta values
-    top_20_keywords = sorted(combined_keyword_betas.items(), key=lambda x: x[1], reverse=True)[:21]
+    top_20_keywords = sorted(combined_keyword_betas.items(), key=lambda x: x[1], reverse=True)[:20]
     top_20_keywords = {word for word, beta in top_20_keywords}
     print(f"\nTop 20 Shared Keywords: {top_20_keywords}")
 
@@ -1049,6 +1046,7 @@ try:
 except Exception as e:
     print(f"An error occurred: {str(e)}")
 ```
+
 ## Influence Propogation Network
 ```{python}
 import networkx as nx

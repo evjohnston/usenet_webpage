@@ -70,7 +70,7 @@ comments_directory <- file.path(output_directory, "CSV Files/Comments")
 
 # Load the datasets
 all_threads <- read.csv(file.path(threads_directory, "combined_threads.csv"))
-all_comments <- read.csv(file.path(comments_directory, "combined_comments.csv"))
+all_comments <- read.csv(file.path(comments_directory, "combined_comments_AS.csv"))
 ```
 
 ## Dataset 1 - All Comments Cleaned
@@ -100,32 +100,22 @@ all_comments <- all_comments %>%
   mutate(Date.and.Time = as.POSIXct(gsub("[^[:alnum:] [:punct:]]", "", Date.and.Time), format = "%b %d, %Y, %I:%M:%S%p"),
          Hour = as.numeric(format(Date.and.Time, "%H")),
          Date = as.Date(Date.and.Time))
-         
-
-# Replace mentions of specific authors
-all_comments <- all_comments %>%
-  mutate(
-    Author = case_when(
-      Author == "SEVENER" ~ "Tim Sevener",
-      Author == "The Polymath" ~ "Jerry Hollombe",
-      Author == "fau...@ucbcad.uucp" ~ "Wayne A. Christopher",
-      Author == "bi...@persci.uucp" ~ "Bill Swan",
-      Author == "wer...@aecom.uucp" ~ "Craig Werner",
-      Author == "pam pincha" ~ "Pam Pincha",
-      Author == "stephanie da silva" ~ "Stephanie Da Silva",
-      Author == "JB" ~ "Beth Christy",
-      TRUE ~ Author # Retain other authors as-is
-    )
-  )
 
 # Add sentiment scores
 all_comments <- all_comments %>%
   mutate(SentimentScore = get_sentiment(Full.Text, method = "afinn"))
 
+all_comments <- all_comments %>%
+  mutate(
+    Author = case_when(
+      Author == "Cowenton Volunteer Fire Department" ~ "Ron Natalie",
+      TRUE ~ Author
+    )
+  )
+
 write.csv(all_threads, file.path(threads_directory, "dataset1_threads.csv"), row.names = FALSE)
 write.csv(all_comments, file.path(comments_directory, "dataset1_comments.csv"), row.names = FALSE)
 ```
-
 
 ## Dataset 2 - AIDS-Related Threads and their Associated Comments, as Determined by Titles (1982–1986)
 ```{r Dataset 2}
@@ -240,7 +230,7 @@ dataset1_summary <- all_comments %>%
 # Add a totals row
 dataset1_totals <- dataset1_summary %>%
   summarize(
-    NG_ID = "Total",
+    newsgroup = "Total",
     Threads = sum(Threads),
     Comments = sum(Comments),
     Authors = n_distinct(all_comments$Author),
@@ -270,7 +260,7 @@ dataset2_stats <- relevant_comments %>%
 # Add a totals row
 dataset2_totals <- dataset2_stats %>%
   summarize(
-    NG_ID = "Total",
+    newsgroup = "Total",
     Threads = sum(Threads),
     Comments = sum(Comments),
     Authors = n_distinct(all_comments$Author),
@@ -326,29 +316,26 @@ tab_df(descriptive_stats, file = file.path(output_directory, "Images and Tables/
 
 ## Dataset 3 Author Statistics
 ```{r Dataset 3 Author Statistics}
-# Filter influential authors' participation in Dataset 3
-dataset3_influential_comments <- relevant_comments %>%
-  filter(Author %in% influential_authors$Author)
+# Step 1: Join influential_authors to dataset3_influential_comments
+dataset3_influential_comments <- dataset3_influential_comments %>%
+  left_join(influential_authors, by = "Author")  # Join InfluenceScore based on Author
 
-dataset3_influential_threads <- relevant_threads %>%
-  filter(NG_TH_ID %in% dataset3_influential_comments$NG_TH_ID)
-
-# Add descriptive statistics for each influential author
+# Step 2: Add descriptive statistics for each influential author
 author_stats <- dataset3_influential_comments %>%
   group_by(Author) %>%
   summarise(
-    Influence = unique(influential_authors$InfluenceScore[influential_authors$Author == Author]),
+    Influence = first(InfluenceScore),  # Influence is now directly available
     Num_Comments = n_distinct(TH_CM_ID),  # Number of comments authored
-    Num_Threads = n_distinct(NG_TH_ID),  # Number of threads participated in
+    Num_Threads = n_distinct(NG_TH_ID),   # Number of threads participated in
     Threads_Started = sum(CM_ID == "CM00001", na.rm = TRUE),  # Threads started
-    Avg_Sentiment = mean(SentimentScore, na.rm = TRUE),  # Average sentiment score
+    Avg_Sentiment = mean(SentimentScore, na.rm = TRUE)  # Average sentiment score
   )
 
-# Filter out authors with missing Influence scores and sort by Influence
+# Step 3: Filter authors with missing Influence scores and sort by Influence
 author_stats <- author_stats %>%
   filter(!is.na(Influence)) %>%
   arrange(desc(Influence))
 
-# Save the table as an HTML file
+# Step 4: Save the table as an HTML file
 tab_df(author_stats, file = file.path(output_directory, "Images and Tables/Tables/dataset3_author_statistics.html"))
 ```
