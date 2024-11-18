@@ -263,9 +263,9 @@ dataset2_totals <- dataset2_stats %>%
     newsgroup = "Total",
     Threads = sum(Threads),
     Comments = sum(Comments),
-    Authors = n_distinct(all_comments$Author),
+    Authors = n_distinct(relevant_comments$Author),
     Avg_Comments_Per_Thread = sum(Comments) / sum(Threads),
-    Avg_Sentiment_Score = mean(all_comments$SentimentScore, na.rm = TRUE)
+    Avg_Sentiment_Score = mean(relevant_comments$SentimentScore, na.rm = TRUE)
   )
 
 dataset2_stats <- bind_rows(dataset2_stats, dataset2_totals)
