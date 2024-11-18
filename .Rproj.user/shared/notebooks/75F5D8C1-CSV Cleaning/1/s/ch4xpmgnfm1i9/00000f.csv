@@ -1,0 +1,46 @@
+"0","# Filter influential authors' participation in Dataset Three"
+"0","dataset3_influential_comments <- filtered_relevant_comments %>%"
+"0","  filter(Author %in% influential_authors$Author)"
+"0",""
+"0","dataset3_influential_threads <- filtered_relevant_threads %>%"
+"0","  filter(Unique_ThreadID %in% dataset3_influential_comments$Thread.ID)"
+"0",""
+"0","# Add descriptive statistics for each influential author"
+"0","author_stats <- dataset3_influential_comments %>%"
+"0","  group_by(Author) %>%"
+"0","  summarise("
+"0","    Influence = unique(influential_authors$Influence[influential_authors$Author == Author]),"
+"0","    Num_Comments = n_distinct(NG_Relative_CommentID),  # Number of comments authored"
+"0","    Num_Threads = n_distinct(Thread.ID),  # Number of threads participated in"
+"0","    Threads_Started = sum(Comment.ID == ""CM00001"", na.rm = TRUE),  # Threads started"
+"0","    Avg_Sentiment = mean(SentimentScore, na.rm = TRUE),  # Average sentiment score"
+"0","    Avg_Relevancy = mean(Relevancy, na.rm = TRUE)  # Average relevancy score"
+"0","  )"
+"2","Warning:"
+"2"," [38;5;232mThere were 9 warnings in `summarise()`.
+The first warning was:[39m
+[38;5;232m[36mℹ[38;5;232m In argument: `Influence = unique(...)`.
+[36mℹ[38;5;232m In group 1: `Author = ""Alan J Rosenthal""`.[39m
+Caused by warning in `influential_authors$Author == Author`:
+[33m![39m longer object length is not a multiple of shorter object length
+[38;5;232m[36mℹ[38;5;232m Run ]8;;ide:run:dplyr::last_dplyr_warnings()dplyr::last_dplyr_warnings()]8;; to see the 8 remaining warnings.[39m
+"
+"2","Warning:"
+"2"," [38;5;232mReturning more (or less) than 1 row per `summarise()` group was deprecated in dplyr 1.1.0.
+[36mℹ[38;5;232m Please use `reframe()` instead.
+[36mℹ[38;5;232m When switching from `summarise()` to `reframe()`, remember that `reframe()` always returns an ungrouped data frame and adjust
+  accordingly.
+[90mCall `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.[38;5;232m[39m
+"
+"1","[38;5;232m`summarise()` has grouped output by 'Author'. You can override using the `.groups` argument.[39m
+"
+"0","# Filter out authors with missing Influence scores and sort by Influence"
+"0","author_stats <- author_stats %>%"
+"0","  filter(!is.na(Influence)) %>%"
+"0","  arrange(desc(Influence))"
+"0",""
+"0","# Save the table as an HTML file"
+"0","tab_df(author_stats, file = paste0(output_directory, ""/Images and Tables/Tables/dataset4_author_statistics.html""))"
+"0",""
+"0","# Display the table"
+"0","print(author_stats)"

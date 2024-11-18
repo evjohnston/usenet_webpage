@@ -1,0 +1,10 @@
+"0","# Define the output file path"
+"0","output_file_path = os.path.join(comments_directory, ""combined_comments_AS.csv"")"
+"0",""
+"0","# Save the DataFrame to the specified CSV file"
+"0","all_comments_AS.to_csv(output_file_path, index=False)"
+"0",""
+"0","# Confirm the save location"
+"0","print(f""DataFrame saved to: {output_file_path}"")"
+"1","DataFrame saved to: /Users/emerson/Github/usenet_webpage/CSV Files/Comments/combined_comments_AS.csv
+"

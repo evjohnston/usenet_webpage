@@ -1,0 +1,83 @@
+"0","import re"
+"0",""
+"0","# Step 1: Define a function to extract a full name from Full.Text if the Author has only one name"
+"0","def find_full_name(author, full_text):"
+"0","    """""""
+"0","    Searches for the last name in Full.Text when the Author column contains only one name."
+"0","    """""""
+"0","    if not isinstance(author, str) or not isinstance(full_text, str):"
+"0","        return None"
+"0","        "
+"0","    # Escape special characters in the Author name"
+"0","    escaped_author = re.escape(author)"
+"0","    "
+"0","    # Check if the Author has only one word (a single name)"
+"0","    if len(author.split()) == 1:"
+"0","        # Regex to find potential full names (e.g., ""Firstname Lastname"" or ""Firstname M. Lastname"")"
+"0","        name_pattern = rf""\b{escaped_author} [A-Z](?:[a-z]+|\.)(?: [A-Z][a-z]+)?\b""  # Matches 'Firstname Lastname' or 'Firstname M. Lastname'"
+"0","        match = re.search(name_pattern, full_text)"
+"0","        if match:"
+"0","            return match.group(0)  # Return the full name"
+"0","            "
+"0","    # Return None if no full name is found"
+"0","    return None"
+"0","    "
+"0","# Step 2: Apply the function to the still_nonstandard_name dataset"
+"0","still_nonstandard_name['Extracted_Full_Name'] = still_nonstandard_name.apply("
+"0","    lambda row: find_full_name(row['Author'], row['Full.Text']), axis=1"
+"0",")"
+"0",""
+"0","# Step 3: Merge resolved names back into all_comments_AS"
+"0","# Create a mapping of resolved names"
+"0","resolved_full_names = still_nonstandard_name[still_nonstandard_name['Extracted_Full_Name'].notnull()][['Author', 'Extracted_Full_Name']].drop_duplicates()"
+"0",""
+"0","# Map resolved full names back to the Author column in all_comments_AS"
+"0","all_comments_AS['Author'] = all_comments_AS['Original_Username'].map("
+"0","    resolved_full_names.set_index('Author')['Extracted_Full_Name']"
+"0",").fillna(all_comments_AS['Author'])"
+"0",""
+"0","# Step 4: Update the still_nonstandard_name dataset to include only unresolved authors"
+"0","still_nonstandard_name = still_nonstandard_name[still_nonstandard_name['Extracted_Full_Name'].isnull()].drop(columns=['Extracted_Full_Name'], inplace=False)"
+"0",""
+"0","# Step 5: Drop the temporary Possible_Full_Name column in all_comments_AS (if it exists)"
+"0","if 'Possible_Full_Name' in all_comments_AS.columns:"
+"0","    all_comments_AS.drop(columns=['Possible_Full_Name'], inplace=True)"
+"0","    "
+"0","# Display the updated datasets"
+"0","print(f""Number of entries still unresolved: {len(still_nonstandard_name)}"")"
+"1","Number of entries still unresolved: 7272
+"
+"0","print(still_nonstandard_name.head())"
+"1","    Thread.ID Comment.ID  ... newsgroup   Original_Username
+127   TH01405    CM00001  ...    netmed  ki...@kestrel.uucp
+129   TH01405    CM00003  ...    netmed    jo...@quad1.uucp
+135   TH01403    CM00003  ...    netmed   pre...@valid.uucp
+145   TH01400    CM00005  ...    netmed  er...@chronon.uucp
+155   TH01396    CM00002  ...    netmed  ki...@kestrel.uucp
+
+[5 rows x 9 columns]
+"
+"0","print(f""Number of authors updated with full names in all_comments_AS: {len(resolved_full_names)}"")"
+"1","Number of authors updated with full names in all_comments_AS: 1
+"
+"0","print(all_comments_AS.head())"
+"1","  Thread.ID Comment.ID  ... newsgroup  Original_Username
+0   TH01442    CM00001  ...    netmed  mi...@tekecs.uucp
+1   TH01441    CM00001  ...    netmed  wer...@aecom.uucp
+2   TH01440    CM00001  ...    netmed  wer...@aecom.uucp
+3   TH01439    CM00001  ...    netmed  wer...@aecom.uucp
+4   TH01439    CM00002  ...    netmed       Hank Buurman
+
+[5 rows x 9 columns]
+"
+"0","# Save the updated still_nonstandard_name dataset to CSV"
+"0","still_nonstandard_name_output_path = os.path.join(comments_directory, ""still_nonstandard_name.csv"")"
+"0","still_nonstandard_name.to_csv(still_nonstandard_name_output_path, index=False)"
+"0","print(f""Updated still_nonstandard_name saved to: {still_nonstandard_name_output_path}"")"
+"1","Updated still_nonstandard_name saved to: /Users/emerson/Github/usenet_webpage/CSV Files/Comments/still_nonstandard_name.csv
+"
+"0","# Count how many authors were updated in all_comments_AS"
+"0","updated_authors_count = (all_comments_AS['Author'] != all_comments_AS['Original_Username']).sum()"
+"0","print(f""Number of authors updated with full names: {updated_authors_count}"")"
+"1","Number of authors updated with full names: 6203
+"

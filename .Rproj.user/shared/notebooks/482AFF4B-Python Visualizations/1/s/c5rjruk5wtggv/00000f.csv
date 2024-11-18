@@ -1,0 +1,155 @@
+"0","import pandas as pd"
+"0","import statsmodels.api as sm"
+"0","from scipy.stats import ttest_ind"
+"0","from scipy.sparse import SparseEfficiencyWarning"
+"0","import warnings"
+"0",""
+"0","# Suppress warnings"
+"0","warnings.simplefilter(""ignore"", category=SparseEfficiencyWarning)"
+"0","warnings.simplefilter(""ignore"", category=FutureWarning)"
+"0",""
+"0","# Load the comparison data"
+"0","comparison_csv_path = ""/Users/emerson/Github/usenet_webpage/Images and Tables/Images/topic_similarity_comparison.csv"""
+"0","comparison_data = pd.read_csv(comparison_csv_path)"
+"0",""
+"0","# Regression Analysis"
+"0","print(""Preparing data for regression analysis..."")"
+"1","Preparing data for regression analysis...
+"
+"0","# Ensure General_Topic and Influential_Topic are categorical"
+"0","comparison_data['General_Topic'] = comparison_data['General_Topic'].astype('category')"
+"0","comparison_data['Influential_Topic'] = comparison_data['Influential_Topic'].astype('category')"
+"0",""
+"0","# Create dummy variables for categorical predictors"
+"0","X = pd.get_dummies(comparison_data[['General_Topic', 'Influential_Topic']], drop_first=True)"
+"0",""
+"0","# Add a constant for the regression model"
+"0","X = sm.add_constant(X)"
+"0",""
+"0","# Convert boolean predictors to integers and ensure all data is numeric"
+"0","X = X.applymap(lambda value: int(value) if isinstance(value, bool) else value)"
+"0","X = X.apply(pd.to_numeric, errors='coerce')"
+"0",""
+"0","# Dependent variable: Similarity"
+"0","y = pd.to_numeric(comparison_data['Similarity'], errors='coerce')"
+"0",""
+"0","# Drop rows with NaN in X or y"
+"0","if X.isnull().any().any() or y.isnull().any():"
+"0","    print(""Warning: Non-numeric or missing values detected. Dropping invalid rows."")"
+"0","    valid_rows = ~(X.isnull().any(axis=1) | y.isnull())"
+"0","    X = X[valid_rows]"
+"0","    y = y[valid_rows]"
+"0","    "
+"0","# Verify the cleaned data"
+"0","print(""\nCleaned Predictors (X):"")"
+"1","
+Cleaned Predictors (X):
+"
+"0","print(X.head())"
+"1","   const  General_Topic_2  ...  Influential_Topic_6  Influential_Topic_7
+0    1.0                0  ...                    0                    0
+1    1.0                0  ...                    0                    0
+2    1.0                0  ...                    0                    0
+3    1.0                0  ...                    0                    0
+4    1.0                0  ...                    0                    0
+
+[5 rows x 16 columns]
+"
+"0","print(""\nCleaned Dependent Variable (y):"")"
+"1","
+Cleaned Dependent Variable (y):
+"
+"0","print(y.head())"
+"1","0    0.176471
+1    0.081081
+2    0.081081
+3    0.025641
+4    0.176471
+Name: Similarity, dtype: float64
+"
+"0","# Fit the regression model"
+"0","try:"
+"0","    model = sm.OLS(y, X).fit()"
+"0","    print(""\nRegression Analysis Summary:"")"
+"0","    print(model.summary())"
+"0","except Exception as e:"
+"0","    print(f""An error occurred during regression analysis: {str(e)}"")"
+"0","    "
+"0","# Pairwise T-Test Analysis"
+"0","print(""\nPerforming pairwise T-tests between General Topics..."")"
+"1","
+Regression Analysis Summary:
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:             Similarity   R-squared:                       0.223
+Model:                            OLS   Adj. R-squared:                  0.007
+Method:                 Least Squares   F-statistic:                     1.032
+Date:                Sun, 17 Nov 2024   Prob (F-statistic):              0.438
+Time:                        19:22:05   Log-Likelihood:                 62.774
+No. Observations:                  70   AIC:                            -93.55
+Df Residuals:                      54   BIC:                            -57.57
+Df Model:                          15                                         
+Covariance Type:            nonrobust                                         
+=======================================================================================
+                          coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   0.1632      0.054      3.037      0.004       0.055       0.271
+General_Topic_2        -0.0351      0.060     -0.585      0.561      -0.156       0.085
+General_Topic_3         0.0456      0.060      0.759      0.451      -0.075       0.166
+General_Topic_4        -0.0661      0.060     -1.100      0.276      -0.187       0.054
+General_Topic_5        -0.0143      0.060     -0.239      0.812      -0.135       0.106
+General_Topic_6        -0.0155      0.060     -0.258      0.797      -0.136       0.105
+General_Topic_7        -0.0651      0.060     -1.084      0.283      -0.186       0.055
+General_Topic_8        -0.0515      0.060     -0.858      0.395      -0.172       0.069
+General_Topic_9         0.0344      0.060      0.572      0.569      -0.086       0.155
+General_Topic_10       -0.1072      0.060     -1.785      0.080      -0.228       0.013
+Influential_Topic_2    -0.0258      0.050     -0.513      0.610      -0.127       0.075
+Influential_Topic_3    -0.0475      0.050     -0.944      0.349      -0.148       0.053
+Influential_Topic_4    -0.0081      0.050     -0.161      0.873      -0.109       0.093
+Influential_Topic_5     0.0466      0.050      0.928      0.358      -0.054       0.147
+Influential_Topic_6     0.0104      0.050      0.207      0.836      -0.090       0.111
+Influential_Topic_7     0.0143      0.050      0.285      0.777      -0.086       0.115
+==============================================================================
+Omnibus:                       21.787   Durbin-Watson:                   1.995
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               28.694
+Skew:                           1.379   Prob(JB):                     5.88e-07
+Kurtosis:                       4.494   Cond. No.                         11.6
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+Performing pairwise T-tests between General Topics...
+"
+"0","# Group Jaccard similarities by General_Topic"
+"0","grouped_data = comparison_data.groupby('General_Topic')['Similarity']"
+"0",""
+"0","# Perform pairwise T-tests between General_Topic groups"
+"0","t_test_results = []"
+"0","for (group1, group2) in combinations(grouped_data.groups.keys(), 2):"
+"0","    similarity_group1 = grouped_data.get_group(group1)"
+"0","    similarity_group2 = grouped_data.get_group(group2)"
+"0","    t_stat, p_value = ttest_ind(similarity_group1, similarity_group2, equal_var=False)"
+"0","    t_test_results.append({'Group1': group1, 'Group2': group2, 't-statistic': t_stat, 'p-value': p_value})"
+"0","    "
+"0","# Convert T-test results into a DataFrame"
+"0","t_test_results_df = pd.DataFrame(t_test_results)"
+"0",""
+"0","# Display significant T-test results"
+"0","significant_results = t_test_results_df[t_test_results_df['p-value'] < 0.05]"
+"0","print(""\nPairwise T-Test Results (Significant at p < 0.05):"")"
+"1","
+Pairwise T-Test Results (Significant at p < 0.05):
+"
+"0","print(significant_results)"
+"1","    Group1  Group2  t-statistic   p-value
+23       3      10     2.894790  0.021215
+44       9      10     2.377691  0.047978
+"
+"0","# Save T-test results to CSV"
+"0","t_test_results_path = ""/Users/emerson/Github/usenet_webpage/Images and Tables/Images/t_test_results.csv"""
+"0","t_test_results_df.to_csv(t_test_results_path, index=False)"
+"0","print(f""\nT-test results saved to: {t_test_results_path}"")"
+"1","
+T-test results saved to: /Users/emerson/Github/usenet_webpage/Images and Tables/Images/t_test_results.csv
+"

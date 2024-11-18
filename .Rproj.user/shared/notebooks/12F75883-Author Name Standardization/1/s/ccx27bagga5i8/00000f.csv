@@ -1,0 +1,32 @@
+"0","# Define a regex pattern for ""weird"" characters (non-alphabetic excluding hyphen and dot)"
+"0","weird_characters_pattern = r""[^A-Za-z\s\-.]"""
+"0",""
+"0","# Filter authors that match the pattern"
+"0","authors_with_weird_chars = all_comments_AS[all_comments_AS['Author'].str.contains(weird_characters_pattern, na=False, regex=True)]"
+"0",""
+"0","# Extract unique authors for manual review"
+"0","author_manual_review = authors_with_weird_chars[['Author']].drop_duplicates().reset_index(drop=True)"
+"0",""
+"0","# Display the result"
+"0","print(f""Number of authors with weird characters: {len(author_manual_review)}"")"
+"1","Number of authors with weird characters: 2420
+"
+"0","print(author_manual_review)"
+"1","                  Author
+0     ki...@kestrel.uucp
+1       jo...@quad1.uucp
+2      pre...@valid.uucp
+3     er...@chronon.uucp
+4      gn...@oliveb.uucp
+...                  ...
+2415            nscs!rew
+2416           ihuxv!dlr
+2417          whuxlb!nrf
+2418          ihuxv!aark
+2419       burdvax!oster
+
+[2420 rows x 1 columns]
+"
+"0","# Optional: Save to a CSV for manual review"
+"0","# author_manual_review.to_csv('author_manual_review.csv', index=False)"
+"0",""

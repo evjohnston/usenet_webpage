@@ -1,0 +1,393 @@
+"0","import pandas as pd"
+"0","import numpy as np"
+"0","import matplotlib.pyplot as plt"
+"0","import seaborn as sns"
+"0","from datetime import datetime"
+"0","import matplotlib.dates as mdates"
+"0","from matplotlib.gridspec import GridSpec"
+"0",""
+"0","# Define topic categories"
+"0","topic_categories = {"
+"0","    'medical': ["
+"0","        'virus', 'immune', 'infection', 'symptom', 'treatment', 'disease',"
+"0","        'patient', 'doctor', 'hospital', 'drug', 'clinical', 'diagnosis',"
+"0","        'vaccine', 'transmission', 'blood', 'test', 'positive', 'negative',"
+"0","        'medication', 'therapy', 'cure', 'health', 'medical', 'medicine',"
+"0","        'syndrome', 'cell', 'viral', 'antibody', 'immune system', 'insurance'"
+"0","    ],"
+"0","    'social': ["
+"0","        'community', 'support', 'family', 'friend', 'relationship', 'stigma',"
+"0","        'discrimination', 'education', 'awareness', 'fear', 'anxiety', 'help',"
+"0","        'care', 'society', 'public', 'impact', 'life', 'work', 'social',"
+"0","        'personal', 'experience', 'gay', 'lesbian', 'sexuality', 'identity',"
+"0","        'support group', 'counseling', 'lifestyle', 'isolation'"
+"0","    ],"
+"0","    'political': ["
+"0","        'policy', 'government', 'funding', 'law', 'legislation', 'right',"
+"0","        'activist', 'advocacy', 'campaign', 'research', 'organization',"
+"0","        'regulation', 'public health', 'cost', 'access', 'insurance',"
+"0","        'initiative', 'program', 'reform', 'budget', 'protest', 'rights', 'reagan'"
+"0","    ],"
+"0","    'scientific': ["
+"0","        'research', 'study', 'data', 'evidence', 'trial', 'experiment',"
+"0","        'laboratory', 'clinical', 'result', 'hypothesis', 'analysis',"
+"0","        'scientific', 'researcher', 'publication', 'paper', 'journal',"
+"0","        'methodology', 'statistical'"
+"0","    ],"
+"0","    'emotional': ["
+"0","        'fear', 'hope', 'worry', 'anxiety', 'depression', 'anger',"
+"0","        'frustration', 'support', 'care', 'love', 'concern', 'stress',"
+"0","        'courage', 'strength', 'emotional', 'feeling', 'scared', 'afraid',"
+"0","        'hopeful', 'grateful'"
+"0","    ]"
+"0","}"
+"0",""
+"0","def calculate_topic_scores(text):"
+"0","    """"""Calculate topic scores for a single text"""""""
+"0","    if pd.isna(text):"
+"0","        return {cat: 0.0 for cat in topic_categories.keys()}"
+"0","    "
+"0","    text = str(text).lower()"
+"0","    scores = {}"
+"0","    "
+"0","    for category, keywords in topic_categories.items():"
+"0","        score = sum(1 for keyword in keywords if keyword in text)"
+"0","        scores[category] = float(score)"
+"0","    "
+"0","    total = sum(scores.values())"
+"0","    if total > 0:"
+"0","        scores = {k: v/total for k, v in scores.items()}"
+"0","    "
+"0","    return scores"
+"0","    "
+"0","def analyze_dataset(df, name):"
+"0","    """"""Analyze content for a dataset"""""""
+"0","    print(f""Analyzing {name}..."")"
+"0","    "
+"0","    # Calculate topic scores for each comment"
+"0","    topic_scores = []"
+"0","    for _, row in df.iterrows():"
+"0","        scores = calculate_topic_scores(row['Full.Text'])"
+"0","        scores['Date'] = pd.to_datetime(row['Date'])"
+"0","        scores['Dataset'] = name"
+"0","        scores['Newsgroup'] = row['newsgroup']"
+"0","        topic_scores.append(scores)"
+"0","    "
+"0","    return pd.DataFrame(topic_scores)"
+"0","    "
+"0","import pandas as pd"
+"0","import numpy as np"
+"0","import matplotlib.pyplot as plt"
+"0","import seaborn as sns"
+"0","from datetime import datetime"
+"0","import matplotlib.dates as mdates"
+"0","from matplotlib.gridspec import GridSpec"
+"0",""
+"0","def create_enhanced_visualizations(results_dict, output_dir):"
+"0","    """"""Create detailed visualizations"""""""
+"0","    print(""Creating enhanced visualizations..."")"
+"0","    "
+"0","    # Set style parameters"
+"0","    sns.set_style(""whitegrid"")"
+"0","    sns.set_context(""talk"")"
+"0","    colors = sns.color_palette(""Set2"", len(topic_categories))"
+"0","    "
+"0","    # 1. Enhanced Overall Distribution Plot"
+"0","    fig = plt.figure(figsize=(15, 10))"
+"0","    gs = GridSpec(2, 1, height_ratios=[2, 1])"
+"0","    "
+"0","    # Bar plot"
+"0","    ax1 = fig.add_subplot(gs[0])"
+"0","    topic_means = {name: df[list(topic_categories.keys())].mean() "
+"0","                  for name, df in results_dict.items()}"
+"0","    topic_comparison = pd.DataFrame(topic_means)  # Notice the change here"
+"0","    "
+"0","    # Set up bar positions"
+"0","    n_topics = len(topic_categories)"
+"0","    n_datasets = len(results_dict)"
+"0","    bar_width = 0.8 / n_datasets"
+"0","    positions = np.arange(n_topics)"
+"0","    "
+"0","    # Plot bars for each dataset"
+"0","    for i, (dataset_name, values) in enumerate(topic_means.items()):"
+"0","        x_pos = positions + (i * bar_width)"
+"0","        rects = ax1.bar(x_pos, "
+"0","                       values,"
+"0","                       bar_width,"
+"0","                       label=dataset_name,"
+"0","                       alpha=0.8)"
+"0","        # Add value labels on top of bars"
+"0","        for rect in rects:"
+"0","            height = rect.get_height()"
+"0","            ax1.text(rect.get_x() + rect.get_width()/2., height,"
+"0","                    f'{height:.2f}',"
+"0","                    ha='center', va='bottom',"
+"0","                    rotation=90)"
+"0","    "
+"0","    # Customize first subplot"
+"0","    ax1.set_ylabel('Proportion', fontsize=12)"
+"0","    ax1.set_title('Topic Distribution Comparison Across Datasets', fontsize=14, pad=20)"
+"0","    ax1.set_xticks(positions + bar_width * (n_datasets-1)/2)"
+"0","    ax1.set_xticklabels(topic_categories.keys(), rotation=45, ha='right')"
+"0","    ax1.legend(title='Datasets', bbox_to_anchor=(1.05, 1))"
+"0","    "
+"0","    # Add relative differences"
+"0","    ax2 = fig.add_subplot(gs[1])"
+"0","    baseline = topic_comparison.iloc[:,0]  # First dataset as baseline"
+"0","    "
+"0","    for i in range(1, topic_comparison.shape[1]):"
+"0","        relative_diff = (topic_comparison.iloc[:,i] - baseline) / baseline * 100"
+"0","        ax2.plot(range(len(topic_categories)), relative_diff,"
+"0","                marker='o', label=f'{topic_comparison.columns[i]} vs {topic_comparison.columns[0]}')"
+"0","    "
+"0","    ax2.axhline(y=0, color='k', linestyle='--', alpha=0.3)"
+"0","    ax2.set_xticks(range(len(topic_categories)))"
+"0","    ax2.set_xticklabels(topic_categories.keys(), rotation=45, ha='right')"
+"0","    ax2.set_ylabel('% Difference from General Usenet')"
+"0","    ax2.legend(bbox_to_anchor=(1.05, 1))"
+"0","    "
+"0","    plt.tight_layout()"
+"0","    plt.savefig(f'{output_dir}/enhanced_topic_distribution.png', dpi=300, bbox_inches='tight')"
+"0","    plt.close()"
+"0","    "
+"0","    # 2. Enhanced Temporal Evolution (Three Separate Panels)"
+"0","    fig, axes = plt.subplots(3, 1, figsize=(15, 15))"
+"0","    fig.suptitle('Topic Evolution Over Time (Pre-1987)', fontsize=16, y=1.00)"
+"0","    "
+"0","    key_events = {"
+"0","        '1982-05-11': ""Term 'AIDS' Introduced"","
+"0","        '1983-09-30': ""CDC Guidelines"","
+"0","        '1984-04-23': ""HIV Identified"","
+"0","        '1985-03-02': ""First Test Approved"","
+"0","        '1985-07-25': ""Rock Hudson"","
+"0","        '1986-02-01': ""'HIV' Named"""
+"0","    }"
+"0","    "
+"0","    for idx, (dataset_name, df) in enumerate(results_dict.items()):"
+"0","        # Filter for pre-1987 data"
+"0","        df = df[df['Date'] < '1987-01-01'].copy()"
+"0","        "
+"0","        # Calculate monthly averages"
+"0","        df_monthly = df.groupby(pd.Grouper(key='Date', freq='M'))[list(topic_categories.keys())].mean()"
+"0","        "
+"0","        # Plot each topic"
+"0","        for topic_idx, topic in enumerate(topic_categories.keys()):"
+"0","            if topic in df_monthly.columns:  # Check if topic exists in the data"
+"0","                axes[idx].plot(df_monthly.index, df_monthly[topic], "
+"0","                             label=topic, color=colors[topic_idx], "
+"0","                             linewidth=2, marker='o', markersize=4)"
+"0","        "
+"0","        # Customize each subplot"
+"0","        axes[idx].set_title(f'{dataset_name}', fontsize=12)"
+"0","        axes[idx].set_ylabel('Topic Proportion')"
+"0","        axes[idx].grid(True, alpha=0.3)"
+"0","        axes[idx].xaxis.set_major_locator(mdates.MonthLocator(interval=3))"
+"0","        axes[idx].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))"
+"0","        "
+"0","        # Add key events"
+"0","        for date, event in key_events.items():"
+"0","            event_date = pd.to_datetime(date)"
+"0","            if event_date in df_monthly.index:"
+"0","                axes[idx].axvline(x=event_date, color='gray', "
+"0","                                linestyle='--', alpha=0.3)"
+"0","                axes[idx].text(event_date, axes[idx].get_ylim()[1], "
+"0","                             event, rotation=90, va='top', fontsize=8)"
+"0","    "
+"0","    # Add legend to the bottom"
+"0","    handles, labels = axes[0].get_legend_handles_labels()"
+"0","    fig.legend(handles, labels, loc='center right', "
+"0","              bbox_to_anchor=(0.98, 0.5), title='Topics')"
+"0","    "
+"0","    plt.tight_layout()"
+"0","    plt.savefig(f'{output_dir}/enhanced_temporal_evolution.png', dpi=300, bbox_inches='tight')"
+"0","    plt.close()"
+"0","    "
+"0","    # 3. Enhanced Newsgroup Comparison"
+"0","    fig = plt.figure(figsize=(20, 8))"
+"0","    gs = GridSpec(1, 3)"
+"0","    "
+"0","    for idx, (dataset_name, df) in enumerate(results_dict.items()):"
+"0","        ax = fig.add_subplot(gs[idx])"
+"0","        "
+"0","        # Ensure we have data to plot"
+"0","        if len(df) > 0:"
+"0","            pivot_data = df.groupby('Newsgroup')[list(topic_categories.keys())].mean()"
+"0","            "
+"0","            # Create heatmap with custom colormap"
+"0","            cmap = sns.color_palette(""YlOrRd"", as_cmap=True)"
+"0","            sns.heatmap(pivot_data, annot=True, fmt='.2f', "
+"0","                       cmap=cmap, ax=ax, cbar=True)"
+"0","            "
+"0","            ax.set_title(f'{dataset_name}', fontsize=12)"
+"0","            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')"
+"0","        else:"
+"0","            ax.text(0.5, 0.5, 'No data available',"
+"0","                   ha='center', va='center')"
+"0","            ax.set_title(f'{dataset_name}', fontsize=12)"
+"0","    "
+"0","    plt.suptitle('Topic Distribution by Newsgroup', fontsize=14, y=1.05)"
+"0","    plt.tight_layout()"
+"0","    plt.savefig(f'{output_dir}/enhanced_newsgroup_comparison.png', dpi=300, bbox_inches='tight')"
+"0","    plt.close()"
+"0","    "
+"0","    # 4. Topic Correlation Heatmaps"
+"0","    fig, axes = plt.subplots(1, 3, figsize=(20, 6))"
+"0","    fig.suptitle('Topic Correlations Across Datasets', fontsize=14)"
+"0","    "
+"0","    # Create custom diverging colormap"
+"0","    cmap = sns.diverging_palette(220, 10, as_cmap=True)"
+"0","    "
+"0","    for idx, (dataset_name, df) in enumerate(results_dict.items()):"
+"0","        if len(df) > 0:"
+"0","            topic_corr = df[list(topic_categories.keys())].corr()"
+"0","            sns.heatmap(topic_corr, annot=True, fmt='.2f', "
+"0","                       cmap=cmap, vmin=-1, vmax=1, "
+"0","                       center=0, ax=axes[idx])"
+"0","        axes[idx].set_title(dataset_name)"
+"0","    "
+"0","    plt.tight_layout()"
+"0","    plt.savefig(f'{output_dir}/topic_correlations.png', dpi=300, bbox_inches='tight')"
+"0","    plt.close()"
+"0","    "
+"0","def print_summary_statistics(results_dict):"
+"0","    """"""Print detailed summary statistics for each dataset"""""""
+"0","    print(""\nDetailed Summary Statistics:"")"
+"0","    "
+"0","    for name, df in results_dict.items():"
+"0","        print(f""\n{name} Analysis:"")"
+"0","        print(""-"" * 50)"
+"0","        "
+"0","        # Basic statistics"
+"0","        print(f""Total posts: {len(df)}"")"
+"0","        print(f""Date range: {df['Date'].min().date()} to {df['Date'].max().date()}"")"
+"0","        print(f""Number of unique newsgroups: {df['Newsgroup'].nunique()}"")"
+"0","        "
+"0","        # Topic statistics"
+"0","        print(""\nTopic Distributions:"")"
+"0","        topic_means = df[list(topic_categories.keys())].mean()"
+"0","        topic_stds = df[list(topic_categories.keys())].std()"
+"0","        "
+"0","        for topic in topic_categories.keys():"
+"0","            print(f""{topic}:"")"
+"0","            print(f""  Mean: {topic_means[topic]:.3f}"")"
+"0","            print(f""  Std:  {topic_stds[topic]:.3f}"")"
+"0","        "
+"0","        # Most common topic combinations"
+"0","        print(""\nMost prevalent topic pairs:"")"
+"0","        topic_corr = df[list(topic_categories.keys())].corr()"
+"0","        np.fill_diagonal(topic_corr.values, 0)"
+"0","        top_pairs = np.unravel_index(np.argsort(topic_corr.values, axis=None)[-3:], topic_corr.shape)"
+"0","        for i, j in zip(top_pairs[0], top_pairs[1]):"
+"0","            if i < j:"
+"0","                print(f""{topic_corr.index[i]} - {topic_corr.columns[j]}: {topic_corr.iloc[i, j]:.3f}"")"
+"0","                "
+"0","def main():"
+"0","    """"""Main analysis function"""""""
+"0","    # Analyze each dataset"
+"0","    results = {"
+"0","        'General Usenet': analyze_dataset(dataset1_comments, ""General Usenet""),"
+"0","        'AIDS Discussions': analyze_dataset(dataset2_comments, ""AIDS Discussions""),"
+"0","        'Influential Authors': analyze_dataset(dataset3_comments_onlyinfluential, ""Influential Authors"")"
+"0","    }"
+"0","    "
+"0","    # Create visualizations"
+"0","    create_enhanced_visualizations(results, ""/Users/emerson/Github/usenet_webpage/Images and Tables/Images"")"
+"0","    "
+"0","    # Print detailed statistics"
+"0","    print_summary_statistics(results)"
+"0","    "
+"0","    return results"
+"0","    "
+"0","# Run the analysis"
+"0","if __name__ == ""__main__"":"
+"0","    results = main()"
+"0",""
+"1","Analyzing General Usenet...
+"
+"1","Analyzing AIDS Discussions...
+Analyzing Influential Authors...
+"
+"1","Creating enhanced visualizations...
+"
+"1","
+Detailed Summary Statistics:
+
+General Usenet Analysis:
+--------------------------------------------------
+Total posts: 43891
+Date range: 1980-05-16 to 1997-05-23
+Number of unique newsgroups: 6
+
+Topic Distributions:
+medical:
+  Mean: 0.094
+  Std:  0.206
+social:
+  Mean: 0.318
+  Std:  0.320
+political:
+  Mean: 0.187
+  Std:  0.274
+scientific:
+  Mean: 0.079
+  Std:  0.179
+emotional:
+  Mean: 0.143
+  Std:  0.220
+
+Most prevalent topic pairs:
+
+AIDS Discussions Analysis:
+--------------------------------------------------
+Total posts: 348
+Date range: 1982-11-10 to 1986-09-25
+Number of unique newsgroups: 5
+
+Topic Distributions:
+medical:
+  Mean: 0.418
+  Std:  0.299
+social:
+  Mean: 0.175
+  Std:  0.186
+political:
+  Mean: 0.102
+  Std:  0.175
+scientific:
+  Mean: 0.097
+  Std:  0.125
+emotional:
+  Mean: 0.099
+  Std:  0.171
+
+Most prevalent topic pairs:
+political - scientific: 0.019
+social - emotional: 0.117
+
+Influential Authors Analysis:
+--------------------------------------------------
+Total posts: 158
+Date range: 1984-01-18 to 1986-09-21
+Number of unique newsgroups: 3
+
+Topic Distributions:
+medical:
+  Mean: 0.488
+  Std:  0.279
+social:
+  Mean: 0.169
+  Std:  0.148
+political:
+  Mean: 0.078
+  Std:  0.139
+scientific:
+  Mean: 0.102
+  Std:  0.116
+emotional:
+  Mean: 0.100
+  Std:  0.161
+
+Most prevalent topic pairs:
+political - scientific: 0.070
+social - emotional: 0.192
+"

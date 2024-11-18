@@ -1,0 +1,70 @@
+"0","import re"
+"0",""
+"0","# Step 1: Define a function to extract valid names from the Author column"
+"0","def extract_clean_name(author):"
+"0","    """""""
+"0","    Extracts a name from the author string if it matches a valid name pattern."
+"0","    Handles cases with weird characters, such as 'Firstname Lastname' or 'Firstname M. Lastname'."
+"0","    """""""
+"0","    if not isinstance(author, str):"
+"0","        return None"
+"0","    # Enhanced regex to handle names with surrounding noise"
+"0","    name_pattern = r""([A-Z][a-z]+(?: [A-Z]\.?)?(?: [A-Z][a-z]+)?)"""
+"0","    match = re.search(name_pattern, author)  # Use search to find names within noisy data"
+"0","    if match:"
+"0","        return match.group(1)  # Return the matched name"
+"0","    return None"
+"0","    "
+"0","# Step 2: Apply the function to extract valid names for the still_nonstandard_name dataset"
+"0","still_nonstandard_name['Extracted_Name'] = still_nonstandard_name['Author'].apply(extract_clean_name)"
+"2","<string>:1: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+"
+"0","# Step 3: Create a mapping of original author to extracted name for resolved entries"
+"0","resolved_names = still_nonstandard_name[still_nonstandard_name['Extracted_Name'].notnull()][['Author', 'Extracted_Name']].drop_duplicates()"
+"0",""
+"0","# Step 4: Merge the resolved names back into all_comments_AS"
+"0","# Map resolved names back to the Author column in all_comments_AS"
+"0","all_comments_AS['Author'] = all_comments_AS['Original_Username'].map("
+"0","    resolved_names.set_index('Author')['Extracted_Name']"
+"0",").fillna(all_comments_AS['Author'])"
+"0",""
+"0","# Step 5: Update still_nonstandard_name to include only entries with unresolved authors"
+"0","still_nonstandard_name = still_nonstandard_name[still_nonstandard_name['Extracted_Name'].isnull()].drop(columns=['Extracted_Name'], inplace=False)"
+"0",""
+"0","# Display the updated still_nonstandard_name and all_comments_AS datasets"
+"0","print(f""Number of entries still unresolved: {len(still_nonstandard_name)}"")"
+"1","Number of entries still unresolved: 7273
+"
+"0","print(still_nonstandard_name.head())"
+"1","    Thread.ID Comment.ID  ... newsgroup   Original_Username
+127   TH01405    CM00001  ...    netmed  ki...@kestrel.uucp
+129   TH01405    CM00003  ...    netmed    jo...@quad1.uucp
+135   TH01403    CM00003  ...    netmed   pre...@valid.uucp
+145   TH01400    CM00005  ...    netmed  er...@chronon.uucp
+155   TH01396    CM00002  ...    netmed  ki...@kestrel.uucp
+
+[5 rows x 9 columns]
+"
+"0","print(f""Number of authors resolved and updated in all_comments_AS: {len(resolved_names)}"")"
+"1","Number of authors resolved and updated in all_comments_AS: 226
+"
+"0","print(all_comments_AS.head())"
+"1","  Thread.ID Comment.ID  ... newsgroup  Original_Username
+0   TH01442    CM00001  ...    netmed  mi...@tekecs.uucp
+1   TH01441    CM00001  ...    netmed  wer...@aecom.uucp
+2   TH01440    CM00001  ...    netmed  wer...@aecom.uucp
+3   TH01439    CM00001  ...    netmed  wer...@aecom.uucp
+4   TH01439    CM00002  ...    netmed       Hank Buurman
+
+[5 rows x 9 columns]
+"
+"0","# Step 6: Save the updated still_nonstandard_name dataset to CSV"
+"0","still_nonstandard_name_output_path = os.path.join(comments_directory, ""still_nonstandard_name.csv"")"
+"0","still_nonstandard_name.to_csv(still_nonstandard_name_output_path, index=False)"
+"0","print(f""Updated still_nonstandard_name saved to: {still_nonstandard_name_output_path}"")"
+"1","Updated still_nonstandard_name saved to: /Users/emerson/Github/usenet_webpage/CSV Files/Comments/still_nonstandard_name.csv
+"

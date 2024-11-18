@@ -1,0 +1,4 @@
+"0","# Calculate the minimum and maximum of the 'Thread_Relevancy' column"
+"0","min_value <- min(all_threads$Thread_Relevancy, na.rm = TRUE)"
+"2","Error: object 'all_threads' not found
+"
