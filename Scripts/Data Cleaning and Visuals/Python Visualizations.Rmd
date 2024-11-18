@@ -49,10 +49,394 @@ dataset3_comments_onlyinfluential = pd.read_csv(os.path.join(comments_directory,
 influential_authors = pd.read_csv(os.path.join(output_directory, "CSV Files/influential_authors.csv"))
 ```
 
-# Cool Initial Visualizations
+# Initial Visualizations
+## Cross-Dataset Content Focus Analysis
 ```{python}
-print(dataset2_comments.columns)
-print(dataset3_comments_all.columns)
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+import matplotlib.dates as mdates
+from matplotlib.gridspec import GridSpec
+
+# Define topic categories
+topic_categories = {
+    'medical': [
+        'virus', 'immune', 'infection', 'symptom', 'treatment', 'disease',
+        'patient', 'doctor', 'hospital', 'drug', 'clinical', 'diagnosis',
+        'vaccine', 'transmission', 'blood', 'test', 'positive', 'negative',
+        'medication', 'therapy', 'cure', 'health', 'medical', 'medicine',
+        'syndrome', 'cell', 'viral', 'antibody', 'immune system', 'insurance'
+    ],
+    'social': [
+        'community', 'support', 'family', 'friend', 'relationship', 'stigma',
+        'discrimination', 'education', 'awareness', 'fear', 'anxiety', 'help',
+        'care', 'society', 'public', 'impact', 'life', 'work', 'social',
+        'personal', 'experience', 'gay', 'lesbian', 'sexuality', 'identity',
+        'support group', 'counseling', 'lifestyle', 'isolation'
+    ],
+    'political': [
+        'policy', 'government', 'funding', 'law', 'legislation', 'right',
+        'activist', 'advocacy', 'campaign', 'research', 'organization',
+        'regulation', 'public health', 'cost', 'access', 'insurance',
+        'initiative', 'program', 'reform', 'budget', 'protest', 'rights', 'reagan'
+    ],
+    'scientific': [
+        'research', 'study', 'data', 'evidence', 'trial', 'experiment',
+        'laboratory', 'clinical', 'result', 'hypothesis', 'analysis',
+        'scientific', 'researcher', 'publication', 'paper', 'journal',
+        'methodology', 'statistical'
+    ],
+    'emotional': [
+        'fear', 'hope', 'worry', 'anxiety', 'depression', 'anger',
+        'frustration', 'support', 'care', 'love', 'concern', 'stress',
+        'courage', 'strength', 'emotional', 'feeling', 'scared', 'afraid',
+        'hopeful', 'grateful'
+    ]
+}
+
+def calculate_topic_scores(text):
+    """Calculate topic scores for a single text"""
+    if pd.isna(text):
+        return {cat: 0.0 for cat in topic_categories.keys()}
+    
+    text = str(text).lower()
+    scores = {}
+    
+    for category, keywords in topic_categories.items():
+        score = sum(1 for keyword in keywords if keyword in text)
+        scores[category] = float(score)
+    
+    total = sum(scores.values())
+    if total > 0:
+        scores = {k: v/total for k, v in scores.items()}
+    
+    return scores
+
+def analyze_dataset(df, name):
+    """Analyze content for a dataset"""
+    print(f"Analyzing {name}...")
+    
+    # Calculate topic scores for each comment
+    topic_scores = []
+    for _, row in df.iterrows():
+        scores = calculate_topic_scores(row['Full.Text'])
+        scores['Date'] = pd.to_datetime(row['Date'])
+        scores['Dataset'] = name
+        scores['Newsgroup'] = row['newsgroup']
+        topic_scores.append(scores)
+    
+    return pd.DataFrame(topic_scores)
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+import matplotlib.dates as mdates
+from matplotlib.gridspec import GridSpec
+
+def create_enhanced_visualizations(results_dict, output_dir):
+    """Create detailed visualizations"""
+    print("Creating enhanced visualizations...")
+    
+    # Set style parameters
+    sns.set_style("whitegrid")
+    sns.set_context("talk")
+    colors = sns.color_palette("Set2", len(topic_categories))
+    
+    # 1. Enhanced Overall Distribution Plot
+    fig = plt.figure(figsize=(15, 10))
+    gs = GridSpec(2, 1, height_ratios=[2, 1])
+    
+    # Bar plot
+    ax1 = fig.add_subplot(gs[0])
+    topic_means = {name: df[list(topic_categories.keys())].mean() 
+                  for name, df in results_dict.items()}
+    topic_comparison = pd.DataFrame(topic_means)  # Notice the change here
+    
+    # Set up bar positions
+    n_topics = len(topic_categories)
+    n_datasets = len(results_dict)
+    bar_width = 0.8 / n_datasets
+    positions = np.arange(n_topics)
+    
+    # Plot bars for each dataset
+    for i, (dataset_name, values) in enumerate(topic_means.items()):
+        x_pos = positions + (i * bar_width)
+        rects = ax1.bar(x_pos, 
+                       values,
+                       bar_width,
+                       label=dataset_name,
+                       alpha=0.8)
+        # Add value labels on top of bars
+        for rect in rects:
+            height = rect.get_height()
+            ax1.text(rect.get_x() + rect.get_width()/2., height,
+                    f'{height:.2f}',
+                    ha='center', va='bottom',
+                    rotation=90)
+    
+    # Customize first subplot
+    ax1.set_ylabel('Proportion', fontsize=12)
+    ax1.set_title('Topic Distribution Comparison Across Datasets', fontsize=14, pad=20)
+    ax1.set_xticks(positions + bar_width * (n_datasets-1)/2)
+    ax1.set_xticklabels(topic_categories.keys(), rotation=45, ha='right')
+    ax1.legend(title='Datasets', bbox_to_anchor=(1.05, 1))
+    
+    # Add relative differences
+    ax2 = fig.add_subplot(gs[1])
+    baseline = topic_comparison.iloc[:,0]  # First dataset as baseline
+    
+    for i in range(1, topic_comparison.shape[1]):
+        relative_diff = (topic_comparison.iloc[:,i] - baseline) / baseline * 100
+        ax2.plot(range(len(topic_categories)), relative_diff,
+                marker='o', label=f'{topic_comparison.columns[i]} vs {topic_comparison.columns[0]}')
+    
+    ax2.axhline(y=0, color='k', linestyle='--', alpha=0.3)
+    ax2.set_xticks(range(len(topic_categories)))
+    ax2.set_xticklabels(topic_categories.keys(), rotation=45, ha='right')
+    ax2.set_ylabel('% Difference from General Usenet')
+    ax2.legend(bbox_to_anchor=(1.05, 1))
+    
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/enhanced_topic_distribution.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # 2. Enhanced Temporal Evolution (Three Separate Panels)
+    fig, axes = plt.subplots(3, 1, figsize=(15, 15))
+    fig.suptitle('Topic Evolution Over Time (Pre-1987)', fontsize=16, y=1.00)
+    
+    key_events = {
+        '1982-05-11': "Term 'AIDS' Introduced",
+        '1983-09-30': "CDC Guidelines",
+        '1984-04-23': "HIV Identified",
+        '1985-03-02': "First Test Approved",
+        '1985-07-25': "Rock Hudson",
+        '1986-02-01': "'HIV' Named"
+    }
+    
+    for idx, (dataset_name, df) in enumerate(results_dict.items()):
+        # Filter for pre-1987 data
+        df = df[df['Date'] < '1987-01-01'].copy()
+        
+        # Calculate monthly averages
+        df_monthly = df.groupby(pd.Grouper(key='Date', freq='M'))[list(topic_categories.keys())].mean()
+        
+        # Plot each topic
+        for topic_idx, topic in enumerate(topic_categories.keys()):
+            if topic in df_monthly.columns:  # Check if topic exists in the data
+                axes[idx].plot(df_monthly.index, df_monthly[topic], 
+                             label=topic, color=colors[topic_idx], 
+                             linewidth=2, marker='o', markersize=4)
+        
+        # Customize each subplot
+        axes[idx].set_title(f'{dataset_name}', fontsize=12)
+        axes[idx].set_ylabel('Topic Proportion')
+        axes[idx].grid(True, alpha=0.3)
+        axes[idx].xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+        axes[idx].xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+        
+        # Add key events
+        for date, event in key_events.items():
+            event_date = pd.to_datetime(date)
+            if event_date in df_monthly.index:
+                axes[idx].axvline(x=event_date, color='gray', 
+                                linestyle='--', alpha=0.3)
+                axes[idx].text(event_date, axes[idx].get_ylim()[1], 
+                             event, rotation=90, va='top', fontsize=8)
+    
+    # Add legend to the bottom
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='center right', 
+              bbox_to_anchor=(0.98, 0.5), title='Topics')
+    
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/enhanced_temporal_evolution.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # 3. Enhanced Newsgroup Comparison
+    fig = plt.figure(figsize=(20, 8))
+    gs = GridSpec(1, 3)
+    
+    for idx, (dataset_name, df) in enumerate(results_dict.items()):
+        ax = fig.add_subplot(gs[idx])
+        
+        # Ensure we have data to plot
+        if len(df) > 0:
+            pivot_data = df.groupby('Newsgroup')[list(topic_categories.keys())].mean()
+            
+            # Create heatmap with custom colormap
+            cmap = sns.color_palette("YlOrRd", as_cmap=True)
+            sns.heatmap(pivot_data, annot=True, fmt='.2f', 
+                       cmap=cmap, ax=ax, cbar=True)
+            
+            ax.set_title(f'{dataset_name}', fontsize=12)
+            plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        else:
+            ax.text(0.5, 0.5, 'No data available',
+                   ha='center', va='center')
+            ax.set_title(f'{dataset_name}', fontsize=12)
+    
+    plt.suptitle('Topic Distribution by Newsgroup', fontsize=14, y=1.05)
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/enhanced_newsgroup_comparison.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # 4. Topic Correlation Heatmaps
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    fig.suptitle('Topic Correlations Across Datasets', fontsize=14)
+    
+    # Create custom diverging colormap
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    
+    for idx, (dataset_name, df) in enumerate(results_dict.items()):
+        if len(df) > 0:
+            topic_corr = df[list(topic_categories.keys())].corr()
+            sns.heatmap(topic_corr, annot=True, fmt='.2f', 
+                       cmap=cmap, vmin=-1, vmax=1, 
+                       center=0, ax=axes[idx])
+        axes[idx].set_title(dataset_name)
+    
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/topic_correlations.png', dpi=300, bbox_inches='tight')
+    plt.close()
+
+def print_summary_statistics(results_dict):
+    """Print detailed summary statistics for each dataset"""
+    print("\nDetailed Summary Statistics:")
+    
+    for name, df in results_dict.items():
+        print(f"\n{name} Analysis:")
+        print("-" * 50)
+        
+        # Basic statistics
+        print(f"Total posts: {len(df)}")
+        print(f"Date range: {df['Date'].min().date()} to {df['Date'].max().date()}")
+        print(f"Number of unique newsgroups: {df['Newsgroup'].nunique()}")
+        
+        # Topic statistics
+        print("\nTopic Distributions:")
+        topic_means = df[list(topic_categories.keys())].mean()
+        topic_stds = df[list(topic_categories.keys())].std()
+        
+        for topic in topic_categories.keys():
+            print(f"{topic}:")
+            print(f"  Mean: {topic_means[topic]:.3f}")
+            print(f"  Std:  {topic_stds[topic]:.3f}")
+        
+        # Most common topic combinations
+        print("\nMost prevalent topic pairs:")
+        topic_corr = df[list(topic_categories.keys())].corr()
+        np.fill_diagonal(topic_corr.values, 0)
+        top_pairs = np.unravel_index(np.argsort(topic_corr.values, axis=None)[-3:], topic_corr.shape)
+        for i, j in zip(top_pairs[0], top_pairs[1]):
+            if i < j:
+                print(f"{topic_corr.index[i]} - {topic_corr.columns[j]}: {topic_corr.iloc[i, j]:.3f}")
+
+def main():
+    """Main analysis function"""
+    # Analyze each dataset
+    results = {
+        'General Usenet': analyze_dataset(dataset1_comments, "General Usenet"),
+        'AIDS Discussions': analyze_dataset(dataset2_comments, "AIDS Discussions"),
+        'Influential Authors': analyze_dataset(dataset3_comments_onlyinfluential, "Influential Authors")
+    }
+    
+    # Create visualizations
+    create_enhanced_visualizations(results, "/Users/emerson/Github/usenet_webpage/Images and Tables/Images")
+    
+    # Print detailed statistics
+    print_summary_statistics(results)
+    
+    return results
+
+# Run the analysis
+if __name__ == "__main__":
+    results = main()
+```
+
+
+## Distribution of influential authors' comments across newsgroups
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def analyze_influential_distribution(dataset1_comments, influential_authors):
+    """Analyze how influential authors participated across different newsgroups"""
+    
+    # Filter for influential authors in the general dataset
+    influential_comments = dataset1_comments[dataset1_comments['Author'].isin(influential_authors['Author'])]
+    
+    # Calculate distributions
+    author_newsgroup_counts = influential_comments.groupby(['Author', 'newsgroup']).size().reset_index(name='comment_count')
+    
+    # Create pivot table for heatmap
+    pivot_data = author_newsgroup_counts.pivot(index='Author', columns='newsgroup', values='comment_count')
+    pivot_data = pivot_data.fillna(0)  # Replace NaN with 0 for cases where author didn't post in a newsgroup
+    
+    # Calculate percentage distribution for each author
+    pivot_data_pct = pivot_data.div(pivot_data.sum(axis=1), axis=0) * 100
+    
+    # Sort authors by total number of comments
+    total_comments = pivot_data.sum(axis=1)
+    pivot_data_pct = pivot_data_pct.loc[total_comments.sort_values(ascending=False).index]
+    
+    # Create visualization
+    plt.figure(figsize=(20, 20))
+    
+    # Create heatmap
+    sns.heatmap(pivot_data_pct, 
+                annot=True, 
+                fmt='.1f',
+                cmap='YlOrRd',
+                cbar_kws={'label': 'Percentage of Author\'s Comments (%)'},
+                vmin=0,
+                vmax=100)
+    
+    plt.title('Distribution of Influential Authors\' Comments Across Newsgroups\n(General Usenet Dataset)',
+              pad=20, fontsize=14)
+    plt.ylabel('Author (Sorted by Total Comments)')
+    plt.xlabel('Newsgroup')
+    
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
+    
+    plt.tight_layout()
+    plt.savefig('/Users/emerson/Github/usenet_webpage/Images and Tables/Images/influential_distribution.png', 
+                dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Create summary statistics
+    summary_stats = {
+        'Total Authors': len(pivot_data),
+        'Most Active Newsgroup': pivot_data.sum().idxmax(),
+        'Least Active Newsgroup': pivot_data.sum().idxmin(),
+        'Most Prolific Author': total_comments.idxmax(),
+        'Average Comments per Author': total_comments.mean(),
+        'Median Comments per Author': total_comments.median(),
+        'Authors with Cross-posting': (pivot_data > 0).sum(axis=1).value_counts()
+    }
+    
+    return pivot_data, pivot_data_pct, summary_stats
+
+# Run the analysis
+pivot_data, pivot_data_pct, summary_stats = analyze_influential_distribution(dataset1_comments, influential_authors)
+
+# Print summary statistics
+print("\nSummary Statistics:")
+print("-" * 50)
+print(f"Total Influential Authors: {summary_stats['Total Authors']}")
+print(f"Most Active Newsgroup: {summary_stats['Most Active Newsgroup']}")
+print(f"Least Active Newsgroup: {summary_stats['Least Active Newsgroup']}")
+print(f"Most Prolific Author: {summary_stats['Most Prolific Author']}")
+print(f"Average Comments per Author: {summary_stats['Average Comments per Author']:.1f}")
+print(f"Median Comments per Author: {summary_stats['Median Comments per Author']:.1f}")
+print("\nNumber of Authors by Newsgroups Posted In:")
+print(summary_stats['Authors with Cross-posting'].sort_index().to_string())
 ```
 
 # Author Impact
@@ -664,6 +1048,157 @@ try:
 
 except Exception as e:
     print(f"An error occurred: {str(e)}")
+```
+## Influence Propogation Network
+```{python}
+import networkx as nx
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
+def create_influence_network(dataset1_comments, influential_authors):
+    """Create and visualize influence network between authors"""
+    
+    def get_thread_interactions(group):
+        """Get author interactions within a thread"""
+        authors = group['Author'].tolist()
+        dates = group['Date'].tolist()
+        interactions = []
+        
+        for i in range(1, len(authors)):
+            if authors[i] in influential_authors['Author'].values and \
+               authors[i-1] in influential_authors['Author'].values:
+                interactions.append((authors[i-1], authors[i], 
+                                  (dates[i] - dates[i-1]).total_seconds()))
+        return interactions
+
+    # Get all interactions between influential authors
+    interactions = []
+    for _, thread in dataset1_comments.groupby('TH_ID'):
+        thread = thread.sort_values('Date')
+        interactions.extend(get_thread_interactions(thread))
+
+    # Create network
+    G = nx.DiGraph()
+    
+    # Add nodes
+    for author in influential_authors['Author']:
+        comment_count = len(dataset1_comments[dataset1_comments['Author'] == author])
+        G.add_node(author, size=np.log2(comment_count + 1) * 100)
+
+    # Add edges
+    edge_weights = {}
+    response_times = {}
+    
+    for source, target, time in interactions:
+        if (source, target) in edge_weights:
+            edge_weights[(source, target)] += 1
+            response_times[(source, target)].append(time)
+        else:
+            edge_weights[(source, target)] = 1
+            response_times[(source, target)] = [time]
+    
+    for (source, target), weight in edge_weights.items():
+        avg_response_time = np.mean(response_times[(source, target)]) / 3600
+        G.add_edge(source, target, weight=weight, response_time=avg_response_time)
+
+    # Create figure with a specific layout for colorbar
+    fig = plt.figure(figsize=(20, 16))
+    gs = plt.GridSpec(1, 20)
+    ax_main = fig.add_subplot(gs[0:19])
+    ax_cbar = fig.add_subplot(gs[19])
+
+    # Use force-directed layout
+    pos = nx.spring_layout(G, k=2, iterations=50, seed=42)
+    
+    edges = G.edges()
+    weights = [G[u][v]['weight'] for u, v in edges]
+    response_times = [G[u][v]['response_time'] for u, v in edges]
+    
+    # Create custom colormap
+    colors = ['#2166ac', '#67a9cf', '#d1e5f0', '#fddbc7', '#ef8a62', '#b2182b']
+    cmap = LinearSegmentedColormap.from_list('custom', colors, N=256)
+    
+    # Normalize edge properties
+    max_weight = max(weights) if weights else 1
+    max_response = max(response_times) if response_times else 1
+    edge_colors = [cmap(rt/max_response) for rt in response_times]
+
+    # Draw network on main axes
+    nx.draw_networkx_edges(G, pos, 
+                          edge_color=edge_colors,
+                          width=[3*w/max_weight for w in weights],
+                          arrowsize=20,
+                          alpha=0.6,
+                          edge_cmap=cmap,
+                          ax=ax_main)
+
+    node_sizes = [G.nodes[node]['size'] for node in G.nodes()]
+    nx.draw_networkx_nodes(G, pos,
+                          node_color='lightblue',
+                          node_size=node_sizes,
+                          alpha=0.7,
+                          linewidths=2,
+                          edgecolors='white',
+                          ax=ax_main)
+
+    labels = {node: node for node in G.nodes()}
+    nx.draw_networkx_labels(G, pos, labels,
+                          font_size=10,
+                          font_weight='bold',
+                          ax=ax_main)
+
+    # Add colorbar
+    norm = plt.Normalize(0, max_response)
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    plt.colorbar(sm, cax=ax_cbar, label='Average Response Time (hours)')
+
+    # Add legend for node sizes
+    sizes = [min(node_sizes), np.median(node_sizes), max(node_sizes)]
+    labels = [f'{int(np.exp2(size/100)-1)} comments' for size in sizes]
+    legend_elements = [plt.scatter([], [], s=size, c='lightblue', 
+                                 alpha=0.7, label=label,
+                                 edgecolors='white', linewidth=2)
+                      for size, label in zip(sizes, labels)]
+    ax_main.legend(handles=legend_elements, 
+                  title='Author Activity',
+                  loc='upper right', 
+                  title_fontsize=12)
+
+    # Set title and remove axes
+    ax_main.set_title('Influence Network of Key Authors\nNode size = total comments, Edge color = response time, Edge thickness = interaction frequency',
+                     pad=20, fontsize=14)
+    ax_main.axis('off')
+
+    plt.tight_layout()
+    plt.savefig('/Users/emerson/Github/usenet_webpage/Images and Tables/Images/influence_network.png',
+                dpi=300, bbox_inches='tight')
+    plt.close()
+
+    # Return network statistics
+    stats = {
+        'num_nodes': G.number_of_nodes(),
+        'num_edges': G.number_of_edges(),
+        'avg_degree': np.mean([d for n, d in G.degree()]),
+        'most_connected': sorted(G.degree(weight='weight'), key=lambda x: x[1], reverse=True)[:5]
+    }
+    
+    return stats
+
+# Run analysis
+stats = create_influence_network(dataset1_comments, influential_authors)
+
+# Print summary statistics
+print("\nNetwork Summary:")
+print("-" * 50)
+print(f"Number of authors: {stats['num_nodes']}")
+print(f"Number of interactions: {stats['num_edges']}")
+print(f"Average degree: {stats['avg_degree']:.2f}")
+print("\nMost Connected Authors (by total interactions):")
+for author, degree in stats['most_connected']:
+    print(f"{author}: {degree:.0f} interactions")
 ```
 
 # Tone

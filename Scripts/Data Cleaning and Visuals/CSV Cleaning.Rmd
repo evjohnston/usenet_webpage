@@ -74,7 +74,7 @@ all_comments <- read.csv(file.path(comments_directory, "combined_comments.csv"))
 ```
 
 ## Dataset 1 - All Comments Cleaned
-```{r Dataset Cleaning}
+```{r Dataset 1}
 # Map newsgroups to IDs
 newsgroup_ids <- c("netmed" = "NG01", "netmotss" = "NG02", "netnews" = "NG03",
                    "netpolitics" = "NG04", "netreligion" = "NG05", "netsingles" = "NG06")
@@ -111,6 +111,9 @@ all_comments <- all_comments %>%
       Author == "fau...@ucbcad.uucp" ~ "Wayne A. Christopher",
       Author == "bi...@persci.uucp" ~ "Bill Swan",
       Author == "wer...@aecom.uucp" ~ "Craig Werner",
+      Author == "pam pincha" ~ "Pam Pincha",
+      Author == "stephanie da silva" ~ "Stephanie Da Silva",
+      Author == "JB" ~ "Beth Christy",
       TRUE ~ Author # Retain other authors as-is
     )
   )
@@ -123,8 +126,9 @@ write.csv(all_threads, file.path(threads_directory, "dataset1_threads.csv"), row
 write.csv(all_comments, file.path(comments_directory, "dataset1_comments.csv"), row.names = FALSE)
 ```
 
-## Dataset 2 - AIDS-Related Comments, as Determined by Titles (1982–1986)
-```{r Title Based Filtering}
+
+## Dataset 2 - AIDS-Related Threads and their Associated Comments, as Determined by Titles (1982–1986)
+```{r Dataset 2}
 # Define AIDS-related keywords
 aids_keywords <- c("aids", "acquired immune deficiency syndrome", "human immunodeficiency virus", 
   "gay-related immune deficiency", "gay plague",
@@ -146,8 +150,8 @@ write.csv(relevant_threads, file.path(threads_directory, "dataset2_threads.csv")
 write.csv(relevant_comments, file.path(comments_directory, "dataset2_comments.csv"), row.names = FALSE)
 ```
 
-## Dataset 3 - AIDS-Related Comments (1982–1986) - Filtered By Influential Authors Comments 
-```{r Identify Influential Authors}
+## Dataset 3 - AIDS-Related Threads and their Associated Comments (1982–1986) - Filtered By Influential Authors Comments 
+```{r Dataset 3}
 # Load required libraries
 library(dplyr)
 library(igraph)
@@ -187,9 +191,7 @@ write.csv(influential_authors, file.path(output_directory, "CSV Files", "influen
 
 # Print the top influential authors
 print(influential_authors)
-```
 
-```{r Influential Authors Comments and Threads}
 # Step 5: Filter comments authored by influential authors
 influential_author_comments <- relevant_comments %>%
   filter(Author %in% influential_authors$Author)
@@ -349,7 +351,4 @@ author_stats <- author_stats %>%
 
 # Save the table as an HTML file
 tab_df(author_stats, file = file.path(output_directory, "Images and Tables/Tables/dataset3_author_statistics.html"))
-
-# Display the table
-print(author_stats)
 ```
