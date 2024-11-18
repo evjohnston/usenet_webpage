@@ -317,7 +317,7 @@ tab_df(descriptive_stats, file = file.path(output_directory, "Images and Tables/
 ## Dataset 3 Author Statistics
 ```{r Dataset 3 Author Statistics}
 # Step 1: Join influential_authors to dataset3_influential_comments
-dataset3_influential_comments <- dataset3_influential_comments %>%
+dataset3_influential_comments <- influential_author_comments %>%
   left_join(influential_authors, by = "Author")  # Join InfluenceScore based on Author
 
 # Step 2: Add descriptive statistics for each influential author

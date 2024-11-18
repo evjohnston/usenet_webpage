@@ -1049,158 +1049,192 @@ except Exception as e:
 
 ## Influence Propogation Network
 ```{python}
-import networkx as nx
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-from matplotlib.colors import LinearSegmentedColormap
+import os
 
-def create_influence_network(dataset1_comments, influential_authors):
-    """Create and visualize influence network between authors"""
+# Directories
+output_directory = "/Users/emerson/Github/usenet_webpage"
+threads_directory = os.path.join(output_directory, "CSV Files/Threads")
+comments_directory = os.path.join(output_directory, "CSV Files/Comments")
+images_dir = os.path.join(output_directory, "Images and Tables/Images")
+tables_dir = os.path.join(output_directory, "Images and Tables/Tables")
+
+# Ensure the images directory exists
+os.makedirs(images_dir, exist_ok=True)
+
+# Full Influence Propagation Network Code
+def create_influence_network(dataset1_comments, influential_authors, output_path):
+    """Create and visualize influence network based on thread interactions."""
     
-    def get_thread_interactions(group):
-        """Get author interactions within a thread"""
+    # Convert 'Date' column to datetime if not already done
+    dataset1_comments['Date'] = pd.to_datetime(dataset1_comments['Date'], errors='coerce')
+    dataset1_comments = dataset1_comments.dropna(subset=['Date'])  # Drop rows with invalid dates
+
+    # Filter threads involving influential authors
+    influential_authors_set = set(influential_authors['Author'])
+    dataset1_comments = dataset1_comments[dataset1_comments['Author'].isin(influential_authors_set)]
+
+    # Group by thread ID
+    interactions = []
+    for thread_id, group in dataset1_comments.groupby('TH_ID'):
+        group = group.sort_values('Date')  # Sort comments in the thread by date
         authors = group['Author'].tolist()
         dates = group['Date'].tolist()
-        interactions = []
         
+        # Create interactions between consecutive authors in the thread
         for i in range(1, len(authors)):
-            if authors[i] in influential_authors['Author'].values and \
-               authors[i-1] in influential_authors['Author'].values:
-                interactions.append((authors[i-1], authors[i], 
-                                  (dates[i] - dates[i-1]).total_seconds()))
-        return interactions
-
-    # Get all interactions between influential authors
-    interactions = []
-    for _, thread in dataset1_comments.groupby('TH_ID'):
-        thread = thread.sort_values('Date')
-        interactions.extend(get_thread_interactions(thread))
-
-    # Create network
-    G = nx.DiGraph()
+            source = authors[i - 1]
+            target = authors[i]
+            response_time = (dates[i] - dates[i - 1]).total_seconds()  # Calculate response time in seconds
+            interactions.append((source, target, response_time))
     
-    # Add nodes
-    for author in influential_authors['Author']:
+    # Build the directed graph
+    G = nx.DiGraph()
+
+    # Add nodes (authors)
+    for author in influential_authors_set:
         comment_count = len(dataset1_comments[dataset1_comments['Author'] == author])
         G.add_node(author, size=np.log2(comment_count + 1) * 100)
 
-    # Add edges
+    # Add edges (interactions between authors)
     edge_weights = {}
     response_times = {}
-    
-    for source, target, time in interactions:
+    for source, target, response_time in interactions:
         if (source, target) in edge_weights:
             edge_weights[(source, target)] += 1
-            response_times[(source, target)].append(time)
+            response_times[(source, target)].append(response_time)
         else:
             edge_weights[(source, target)] = 1
-            response_times[(source, target)] = [time]
-    
+            response_times[(source, target)] = [response_time]
+
     for (source, target), weight in edge_weights.items():
-        avg_response_time = np.mean(response_times[(source, target)]) / 3600
+        avg_response_time = np.mean(response_times[(source, target)]) / 3600  # Average response time in hours
         G.add_edge(source, target, weight=weight, response_time=avg_response_time)
 
-    # Create figure with a specific layout for colorbar
-    fig = plt.figure(figsize=(20, 16))
-    gs = plt.GridSpec(1, 20)
-    ax_main = fig.add_subplot(gs[0:19])
-    ax_cbar = fig.add_subplot(gs[19])
+    # Create visualization
+    fig, ax = plt.subplots(figsize=(20, 16))
+    pos = nx.spring_layout(G, seed=42)  # Use spring layout for positioning nodes
 
-    # Use force-directed layout
-    pos = nx.spring_layout(G, k=2, iterations=50, seed=42)
-    
+    # Get edge properties for visualization
     edges = G.edges()
     weights = [G[u][v]['weight'] for u, v in edges]
     response_times = [G[u][v]['response_time'] for u, v in edges]
-    
-    # Create custom colormap
-    colors = ['#2166ac', '#67a9cf', '#d1e5f0', '#fddbc7', '#ef8a62', '#b2182b']
-    cmap = LinearSegmentedColormap.from_list('custom', colors, N=256)
-    
-    # Normalize edge properties
+
+    # Normalize edge colors and widths
     max_weight = max(weights) if weights else 1
-    max_response = max(response_times) if response_times else 1
-    edge_colors = [cmap(rt/max_response) for rt in response_times]
+    max_response_time = max(response_times) if response_times else 1
+    edge_colors = [plt.cm.viridis(rt / max_response_time) for rt in response_times]
+    edge_widths = [3 * w / max_weight for w in weights]
 
-    # Draw network on main axes
-    nx.draw_networkx_edges(G, pos, 
-                          edge_color=edge_colors,
-                          width=[3*w/max_weight for w in weights],
-                          arrowsize=20,
-                          alpha=0.6,
-                          edge_cmap=cmap,
-                          ax=ax_main)
-
+    # Draw nodes
     node_sizes = [G.nodes[node]['size'] for node in G.nodes()]
-    nx.draw_networkx_nodes(G, pos,
-                          node_color='lightblue',
-                          node_size=node_sizes,
-                          alpha=0.7,
-                          linewidths=2,
-                          edgecolors='white',
-                          ax=ax_main)
+    nx.draw_networkx_nodes(G, pos, node_size=node_sizes, node_color='lightblue', edgecolors='black', alpha=0.9)
 
-    labels = {node: node for node in G.nodes()}
-    nx.draw_networkx_labels(G, pos, labels,
-                          font_size=10,
-                          font_weight='bold',
-                          ax=ax_main)
+    # Draw edges
+    nx.draw_networkx_edges(G, pos, edge_color=edge_colors, width=edge_widths, alpha=0.7, edge_cmap=plt.cm.viridis)
 
-    # Add colorbar
-    norm = plt.Normalize(0, max_response)
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    plt.colorbar(sm, cax=ax_cbar, label='Average Response Time (hours)')
+    # Draw labels
+    nx.draw_networkx_labels(G, pos, font_size=10, font_weight='bold')
 
     # Add legend for node sizes
-    sizes = [min(node_sizes), np.median(node_sizes), max(node_sizes)]
-    labels = [f'{int(np.exp2(size/100)-1)} comments' for size in sizes]
-    legend_elements = [plt.scatter([], [], s=size, c='lightblue', 
-                                 alpha=0.7, label=label,
-                                 edgecolors='white', linewidth=2)
-                      for size, label in zip(sizes, labels)]
-    ax_main.legend(handles=legend_elements, 
-                  title='Author Activity',
-                  loc='upper right', 
-                  title_fontsize=12)
+    size_labels = [min(node_sizes), np.median(node_sizes), max(node_sizes)]
+    legend_labels = [f'{int(2 ** (size / 100) - 1)} comments' for size in size_labels]
+    for size, label in zip(size_labels, legend_labels):
+        plt.scatter([], [], s=size, c='lightblue', label=label, edgecolors='black', alpha=0.9)
+    plt.legend(title='Author Activity', loc='upper right')
+
+    # Add colorbar for edge response times
+    sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(0, max_response_time))
+    sm.set_array([])
+    plt.colorbar(sm, ax=ax, label='Average Response Time (hours)')
 
     # Set title and remove axes
-    ax_main.set_title('Influence Network of Key Authors\nNode size = total comments, Edge color = response time, Edge thickness = interaction frequency',
-                     pad=20, fontsize=14)
-    ax_main.axis('off')
+    plt.title('Influence Network of Key Authors\nEdge thickness = interaction frequency, Edge color = response time', fontsize=16)
+    plt.axis('off')
 
-    plt.tight_layout()
-    plt.savefig('/Users/emerson/Github/usenet_webpage/Images and Tables/Images/influence_network.png',
-                dpi=300, bbox_inches='tight')
+    # Save the visualization
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
 
-    # Return network statistics
+    # Return graph statistics
     stats = {
         'num_nodes': G.number_of_nodes(),
         'num_edges': G.number_of_edges(),
         'avg_degree': np.mean([d for n, d in G.degree()]),
         'most_connected': sorted(G.degree(weight='weight'), key=lambda x: x[1], reverse=True)[:5]
     }
-    
     return stats
 
-# Run analysis
-stats = create_influence_network(dataset1_comments, influential_authors)
+
+# Example usage
+output_path = os.path.join(images_dir, "influence_network.png")
+stats = create_influence_network(dataset1_comments, influential_authors, output_path=output_path)
 
 # Print summary statistics
 print("\nNetwork Summary:")
-print("-" * 50)
 print(f"Number of authors: {stats['num_nodes']}")
 print(f"Number of interactions: {stats['num_edges']}")
 print(f"Average degree: {stats['avg_degree']:.2f}")
 print("\nMost Connected Authors (by total interactions):")
 for author, degree in stats['most_connected']:
-    print(f"{author}: {degree:.0f} interactions")
+    print(f"{author}: {degree} interactions")
 ```
 
 # Tone
-##Sentiment Visualizations
+##Sentiment Descriptive Statistics
+```{python Descriptive Statistics}
+import pandas as pd
+from scipy.stats import skew, kurtosis
+
+# Function to calculate descriptive statistics
+def calculate_descriptive_stats(df, column_name):
+    """Calculate descriptive statistics for a given dataframe and column."""
+    min_value = df[column_name].min()
+    max_value = df[column_name].max()
+    range_value = max_value - min_value
+    mean_value = df[column_name].mean()
+    median_value = df[column_name].median()
+    sd_value = df[column_name].std()
+    skewness_value = skew(df[column_name], nan_policy='omit')
+    kurtosis_value = kurtosis(df[column_name], nan_policy='omit')
+    
+    return {
+        'Min': min_value,
+        'Max': max_value,
+        'Range': range_value,
+        'Mean': mean_value,
+        'Median': median_value,
+        'SD': sd_value,
+        'Skewness': skewness_value,
+        'Kurtosis': kurtosis_value
+    }
+
+# List of datasets and their labels
+datasets = {
+    "Dataset One (All Comments)": dataset1_comments,
+    "Dataset Two (Relevant Comments)": dataset2_comments,
+    "Dataset Three (Influential Authors)": dataset3_comments_onlyinfluential
+}
+
+# Calculate statistics for each dataset
+results = {}
+for dataset_name, df in datasets.items():
+    stats = calculate_descriptive_stats(df, column_name="SentimentScore")  # Replace 'SentimentScore' with the actual column name
+    results[dataset_name] = stats
+
+# Convert results into a DataFrame for display
+stats_df = pd.DataFrame(results).T
+stats_df = stats_df.reset_index().rename(columns={'index': 'Dataset'})
+
+# Save as an HTML table
+output_path = '/Users/emerson/Github/usenet_webpage/Images and Tables/Tables/sentiment_descriptive_stats.html'
+stats_df.to_html(output_path, index=False, float_format="%.2f", border=1)
+print(f"HTML table saved to: {output_path}")
+
+# Optional: Display the HTML table in a pretty format (useful in notebooks or for debugging)
+from IPython.core.display import display, HTML
+display(HTML(stats_df.to_html(index=False, float_format="%.2f", border=1)))
+```
+## Sentiment Visualizations
 ```{python Sentiment Visualization Plot}
 def create_sentiment_visualization():
     """Create time series visualization of sentiment scores using existing dataframes."""
